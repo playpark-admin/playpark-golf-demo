@@ -6,9 +6,8 @@ export function aimVisual(ball,cup,angle,distance,scale){
  scale=safeScale(scale);const toCup=Math.hypot(cup.x-ball.x,cup.y-ball.y);
  const length=distance>0?distance:Math.min(toCup,Math.max(6,44/scale));
  const end={x:ball.x+Math.cos(angle)*length,y:ball.y+Math.sin(angle)*length},path=`M${ball.x} ${ball.y}L${end.x} ${end.y}`;
- const targetClear=Math.hypot(end.x-cup.x,end.y-cup.y)*scale>15;
  const arrow=length*scale>42?`<g transform="translate(${ball.x+(end.x-ball.x)*.65} ${ball.y+(end.y-ball.y)*.65}) rotate(${angle*180/Math.PI}) scale(${1/scale})"><path class="aim-chevron-outline" d="M-5 -5L1 0 -5 5"/><path class="aim-chevron" d="M-5 -5L1 0 -5 5"/></g>`:'';
- return `<path class="aim-outline" d="${path}"/><path class="aim-line" d="${path}"/>${arrow}${targetClear?`<g class="aim-target" transform="translate(${end.x} ${end.y}) scale(${1/scale})"><circle class="aim-target-outline" r="6"/><circle class="aim-target-ring" r="6"/></g>`:''}`;
+ return `<path class="aim-outline" d="${path}"/><path class="aim-line" d="${path}"/>${arrow}<g class="aim-target" transform="translate(${end.x} ${end.y}) scale(${1/scale})"><circle class="aim-target-outline" r="6"/><circle class="aim-target-ring" r="6"/></g>`;
 }
 export function ballVisuals(round,{animatedId=null,position=null,scale=1,colors=[]}={}){
  scale=safeScale(scale);const active=animatedId??round.active,cup=round.layout[round.holeIndex].cup;
