@@ -20,3 +20,18 @@
 @media(max-width:760px){:root{--app-header-height:calc(72px + var(--safe-top))}.app-header{padding:var(--safe-top) max(16px,var(--safe-right)) 0 max(16px,var(--safe-left))}.app-brand{gap:12px}.app-brand strong{font-size:29px}.app-logo{width:44px;height:44px;border-radius:11px}.mobile-nav{grid-template-columns:repeat(5,minmax(0,1fr))}.mobile-nav button{font-size:16px;min-height:56px;padding-inline:0}.help-card{padding:24px 20px}.help-card h2,.help-about h2{font-size:25px}.help-about dl>div{grid-template-columns:90px minmax(0,1fr);gap:12px}.help-card .guide-steps>div{gap:12px}.help-card .guide-steps>div>b{width:30px;height:30px;line-height:30px}.help-return{width:100%;justify-content:center}}
 
 .music-toggle{min-height:54px;font-size:19px;line-height:1.5}.music-toggle[aria-pressed="false"]{background:#eef2f3;color:#455d69;border-color:#ccd9dd}
+
+/* Course selection must be distinct from green course art, with text as well as color. */
+.course-section .course-card{border:3px solid #d4dfe3;transition:border-color .15s,box-shadow .15s}
+.course-section .course-card.selected{border-color:#233b5b;background:#fff7dc;box-shadow:0 0 0 2px #f0bf4f,0 5px 14px #233b5b18}
+.course-section .course-card.selected .card-body{background:#fff7dc}
+.course-section .selection-check{width:36px;height:36px;top:12px;right:12px;border:2px solid #758697;background:#fffffff2;border-radius:10px}
+.course-section .selected .selection-check{width:44px;height:44px;border:2px solid #fff;background:#ffdc65;color:#172d49;box-shadow:0 2px 8px #182b4530}
+.course-section .selected .selection-check svg{width:28px;height:28px;stroke-width:3}
+.course-selection-banner{position:absolute;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;min-height:46px;padding:9px 14px;background:#233b5b;color:#fff;font-size:18px;line-height:1.4;font-weight:700;letter-spacing:0}
+.course-selection-banner b{color:#ffdf79;font-size:18px}.course-selection-banner>span{white-space:nowrap}
+.course-section .selected .course-tag{display:none}
+.course-section .selected .card-meta{border-color:#decf9b}.course-section .selected .card-meta strong{font-size:18px;color:#233b5b;font-weight:800}
+.course-section .selected-count{border:2px solid #233b5b;background:#fff7dc;color:#233b5b;font-size:18px}.course-section .selected-count b{color:#233b5b}
+@media(max-width:400px){.course-selection-banner{padding:8px 12px}.course-section .selection-check{top:10px;right:10px}}
+@media(forced-colors:active){.course-section .course-card.selected{border-color:Highlight;outline:2px solid Highlight}.course-selection-banner{border-top:2px solid Highlight}}
