@@ -1,5 +1,6 @@
 import './viewport.js';
 import {APP_INFO} from './app-info.js';
+import {bindCaddyMessage} from './caddy-message.js';
 import {createGameAudio} from './audio.js';
 import {bindMapCamera,fitCamera} from './camera.js';
 import {animationSample} from './shot-animation.js';
@@ -30,12 +31,12 @@ state.quizFilter={topic:'all',difficulty:'all'};state.quizVisible=12;
 let activeQuiz=null,practice=null,quizSerial=0;
 const color=['#ffffff','#efb853','#d8809c','#73b8db'];
 let cardExport=null,cardSerial=0;
-let feedback='',toastTimer,returnFocus=null,eventTimer,eventDone=null,mapCamera=null,unbindJoystick=null;
+let feedback='',toastTimer,returnFocus=null,eventTimer,eventDone=null,mapCamera=null,unbindJoystick=null,unbindCaddy=null;
 const gameAudio=createGameAudio(()=>state.sound);
 document.addEventListener('pointerdown',gameAudio.unlock,{capture:true,passive:true});
 document.addEventListener('keydown',gameAudio.unlock,{capture:true});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)gameAudio.pause();});
-function clearGameControls(){mapCamera?.destroy();mapCamera=null;unbindJoystick?.();unbindJoystick=null;}
+function clearGameControls(){unbindCaddy?.();unbindCaddy=null;mapCamera?.destroy();mapCamera=null;unbindJoystick?.();unbindJoystick=null;}
 
 function toast(text){const el=$('#toast');el.textContent=text;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3200);}
 function sound(kind='hit',options){gameAudio.play(kind,options);}
@@ -56,6 +57,10 @@ function shotLimit(){const r=state.round,p=r.players[r.active],h=r.layout[r.hole
 function resetAim(){const r=state.round,p=r.players[r.active],h=r.layout[r.holeIndex];state.angle=Math.atan2(h.cup.y-p.ball.y,h.cup.x-p.ball.x);state.power=0;state.view=distance(p.ball,h.cup)<=12?'ball':'full';}
 function currentCourse(){return courses.find(c=>c.id===state.round.layout[state.round.holeIndex].courseId);}
 const lies={fairway:'페어웨이',green:'그린',rough:'러프',sand:'벙커',water:'워터 해저드',ob:'OB'};
+const defaultCaddyMessage='두 손가락으로 확대하고, 공을 보낼 방향으로 조이스틱을 밀어요.';
+const caddyFace=()=>'<span class="caddy-face" aria-hidden="true"><img class="caddy-portrait" src="./assets/brand/plpak.webp" width="768" height="1024" alt="" draggable="false"></span>';
+function caddyMessage(){return feedback||defaultCaddyMessage;}
+function showCaddyMessage(){modal(`<div class="caddy-detail-heading">${caddyFace()}<h2 id="modal-title">플팍의 안내</h2></div><p class="caddy-full-message">${escape(caddyMessage())}</p><button class="primary full" data-action="close">플레이 계속하기</button>`);}
 function renderGame(){
   clearGameControls();
   const r=state.round;if(!r){state.page='home';home();return;}
@@ -65,10 +70,11 @@ function renderGame(){
   <div class="game-status"><div class="turn-summary"><small>${escape(p.name)}님의 차례</small><strong>${p.strokes+p.holePenalty+1}<span>번째 샷</span></strong></div><div><small>홀컵까지</small><strong>${distance(p.ball,h.cup).toFixed(1)}<span>m</span></strong></div><div><small>현재 홀</small><strong>${p.strokes+p.holePenalty}<span>타</span></strong>${p.holePenalty?`<em>벌타 ${p.holePenalty} 포함</em>`:''}</div></div>
   <div class="game-layout"><section class="field-area" style="--course-grass:${c.accent}" aria-label="코스와 샷 조작"><div class="map-wrapper">${holeArt(h,c)}</div>
   <div class="field-toolbar"><button class="terrain-readout" data-action="terrain-guide" aria-label="경사 그리드 읽는 법"><span id="elevation-value"></span><strong id="slope-value"></strong></button><div class="map-tools" aria-label="지도 확대 조절"><button data-action="zoom-out" aria-label="코스 축소">−</button><button data-action="zoom" aria-label="코스 전체 보기"><span id="zoom-value">전체</span></button><button data-action="zoom-in" aria-label="코스 확대">+</button></div></div>
-  <button class="caddy-radio stage-note" data-action="caddy-message" aria-label="플팍 안내 자세히 보기">${mascot()}<span><b>플팍</b><span>${escape(feedback||'두 손가락으로 확대하고, 공을 보낼 방향으로 조이스틱을 밀어요.')}</span></span></button>
+  <button class="caddy-radio stage-note" data-action="caddy-message" aria-label="플팍 안내: ${escape(caddyMessage())}" aria-describedby="caddy-read-hint"><span class="caddy-heading">${caddyFace()}<span class="caddy-name">플팍 ${icon('chevron',16)}</span></span><span class="caddy-copy-window"><span class="caddy-copy-text">${escape(caddyMessage())}</span></span><span class="sr-only" id="caddy-read-hint">누르면 전체 안내를 읽을 수 있어요.</span></button>
   <section class="joystick-dock" aria-label="샷 조작"><div class="stick-instruction sr-only" id="stick-instruction">${ready?'밀어서 조준 · 손을 놓으면 샷!':p.needsRelief?'워터 해저드 처치를 먼저 확인해요':'멋진 홀아웃! 결과를 확인해요'}</div><div class="joystick-console"><div class="stick-readout"><strong id="power-value">0<small>%</small></strong><span>파워</span><span id="expected-value" class="sr-only">0m</span><div class="power-meter sr-only"><i id="power-meter-fill"></i></div></div>
   <div id="joystick" class="joystick ${!ready?'unavailable':''}" tabindex="${ready?'0':'-1'}" role="button" aria-label="샷 조이스틱" aria-disabled="${!ready}" aria-describedby="joystick-help" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Enter Space"><span class="stick-axis x"></span><span class="stick-axis y"></span><span class="stick-north">▲</span><span class="stick-thumb">${icon('target',25)}</span></div></div><p id="joystick-help" class="sr-only">보낼 방향으로 밀고 손을 놓으면 샷. 멀리 밀수록 강하게. 가운데로 돌아오면 취소. 지도는 두 손가락으로 확대하고 한 손가락으로 이동해요. 키보드 좌우는 방향, 위아래는 힘, Enter는 샷.</p></section>
   ${p.needsRelief?'<button class="primary dock-action" data-action="relief">워터 해저드 처치하기</button>':r.status==='hole-complete'?'<button class="primary dock-action" data-action="hole-result">홀 결과 확인하기</button>':''}</section></div></div>`;
+  unbindCaddy=bindCaddyMessage($('.stage-note'));
   updateAim();updateBalls();applyZoom();
   const joystick=$('#joystick');
   unbindJoystick=bindJoystick(joystick,{start:()=>{gameAudio.resetAim();sound('ready');},limit:shotLimit,canPlay:()=>!mapCamera?.isInteracting&&!state.moving&&!state.eventOpen&&!modalRoot.firstChild&&state.round?.status==='playing'&&!state.round.players[state.round.active].needsRelief,
@@ -222,6 +228,7 @@ document.addEventListener('click',e=>{const btn=e.target.closest('[data-action]'
   case 'shoot':shoot();break;
   case 'terrain-guide':{const h=state.round.layout[state.round.holeIndex],p=state.round.players[state.round.active];modal(`<h2 id="modal-title">경사를 읽으면 더 재미있어요</h2><div class="terrain-key"><span>낮음</span><i aria-hidden="true"></i><span>높음</span></div><div class="quiz-caddy">${mascot()}<p>${slopeHint(p.ball,h,state.angle)}</p></div><div class="guide-steps"><div><b>1</b><span><strong>격자 위의 점은 낮은 쪽으로</strong><small>흐르는 점을 보면 공이 휘어질 방향을 알 수 있어요. 점이 빠르게 흐를수록 가파른 경사예요.</small></span></div><div><b>2</b><span><strong>밝은 곳은 높고, 어두운 곳은 낮아요</strong><small>격자 한 칸은 6m예요. 같은 간격의 격자 안에서 밝기를 비교하세요. 화면 동작 줄이기를 켜면 점은 멈추고, 밝기로 높낮이를 볼 수 있어요.</small></span></div><div><b>3</b><span><strong>오르막은 강하게, 내리막은 약하게</strong><small>조이스틱의 평지 거리는 기준이에요. 실제 거리는 경사와 잔디에 따라 달라져요.</small></span></div></div><button class="primary full" data-action="close">경사를 보며 쳐 볼게요</button>`);break;}
   case 'control-guide':gameHelp();break;
+  case 'caddy-message':showCaddyMessage();break;
   case 'aim-cup':{const p=state.round.players[state.round.active],h=state.round.layout[state.round.holeIndex];state.angle=Math.atan2(h.cup.y-p.ball.y,h.cup.x-p.ball.x);closeModal();mapCamera?.reset('ball');updateAim();break;}
   case 'zoom':state.view='full';mapCamera?.reset('full');break;
   case 'zoom-in':mapCamera?.zoom(1.35);break;
