@@ -1,3 +1,4 @@
+import {holeResultView,scorePose} from './hole-result-view.js';
 import {landscapeCourse,projectCoursePoint,courseFrameBounds,fitCourseFrame} from './course-framing.js';
 import {aimVisual,ballVisuals,trailVisual} from './shot-visuals.js';
 import {courseAccess,roundAccess} from './course-access.js';
@@ -139,7 +140,7 @@ async function showShotEvent(result,player,h){
   const kinds={ob:['ob','OB · 2벌타','공이 경계 밖에 멈췄어요.','벗어난 경계 지점에 공을 놓았어요. 여기서 이어 쳐요.'],cup:['cup','컵인!',`${escape(player.name)}님, ${player.strokes+player.holePenalty}타로 홀아웃!`,scoreLabel(player.strokes+player.holePenalty,h.par)],water:['water','워터 해저드','공이 물에 들어갔어요.','처치 방법을 확인하고 계속해요.'],'cup-miss':['near','아깝다!','홀컵을 지날 때 힘이 너무 강했어요.','조이스틱을 조금만 밀어 부드럽게 굴려요.'],tree:['tree','나무에 맞았어요','공이 멈춘 자리에서 다시 도전해요.','나무를 피해 방향을 바꿔 보세요.']};
   const info=kinds[result.event];if(!info)return;
   state.eventOpen=true;
-  await new Promise(resolve=>{modal(`<div class="shot-event ${info[0]}"><span class="event-symbol">${icon(info[0]==='cup'?'flag':info[0]==='ob'?'close':'target',48)}</span><h2 id="modal-title">${info[1]}</h2><p>${info[2]}</p><strong>${info[3]}</strong><button class="primary full" data-action="close-event">계속하기 ${icon('arrow',22)}</button><small>잠시 후 자동으로 닫혀요</small></div>`);eventDone=resolve;eventTimer=setTimeout(closeModal,info[0]==='cup'?3600:5200);modalRoot.querySelector('.modal').classList.add('event-modal');});
+  await new Promise(resolve=>{modal(`<div class="shot-event ${info[0]}"><div class="event-mascot">${mascot('mascot-reaction',info[0]==='cup'?scorePose(player.strokes+player.holePenalty,h.par):'encourage')}<span class="event-symbol">${icon(info[0]==='cup'?'flag':info[0]==='ob'?'close':'target',24)}</span></div><h2 id="modal-title">${info[1]}</h2><p>${info[2]}</p><strong>${info[3]}</strong><button class="primary full" data-action="close-event">계속하기 ${icon('arrow',22)}</button><small>잠시 후 자동으로 닫혀요</small></div>`);eventDone=resolve;eventTimer=setTimeout(closeModal,info[0]==='cup'?3600:5200);modalRoot.querySelector('.modal').classList.add('event-modal');});
   state.eventOpen=false;$('#joystick')?.focus({preventScroll:true});
 }
 async function shoot(){
@@ -155,8 +156,8 @@ async function shoot(){
   if(result.needsRelief)showRelief();else if(r.status==='hole-complete')holeResult();
 }
 
-function showRelief(){const p=state.round.players[state.round.active];modal(`<span class="eyebrow">PLPARK RULE GUIDE</span><h2 id="modal-title">${p.needsRelief?'워터 해저드에 들어갔어요':'언플레이어블을 선언할까요?'}</h2><div class="rule-mascot">${mascot()}</div><p>${p.needsRelief?'이 코스의 물에서는 샷을 할 수 없어요. 언플레이어블 2벌타를 더하고, 공을 놓을 자리가 없으면 공지된 OB 티로 이동해요.':'2벌타를 더하고 홀컵에 가까워지지 않는 2클럽 이내의 칠 수 있는 곳으로 이동해요.'}</p><button class="primary full" data-action="confirm-relief">2벌타 확인 · 처치하기</button><button class="text-button full" data-action="close">${p.needsRelief?'코스 다시 살펴보기':'현재 위치에서 플레이'}</button>`);}
-function holeResult(){const r=state.round,h=r.layout[r.holeIndex];modal(`<span class="eyebrow">HOLE ${String(r.holeIndex+1).padStart(2,'0')} COMPLETE</span><h2 id="modal-title">${r.players.length===1?scoreLabel(r.players[0].scores[r.holeIndex],h.par):'모두 멋지게 홀아웃!'}</h2><div class="result-mascot">${mascot()}</div><p>${r.holeIndex===8?'전반 9홀을 마쳤어요. 후반 코스에서 새로운 풍경을 만나봐요.':'이번 홀의 타수를 함께 확인해 주세요.'}</p><div class="hole-results">${r.players.map(p=>`<div><b>${escape(p.name)}</b><span>${scoreLabel(p.scores[r.holeIndex],h.par)}</span><strong>${p.scores[r.holeIndex]}<small> 타</small></strong></div>`).join('')}</div><button class="primary full" data-action="next-step">${r.holeIndex===17?'최종 결과 확인':r.holeIndex===8?'후반 9홀로 출발':'다음 홀로'} ${icon('arrow',18)}</button><button class="text-button full" data-action="scorecard">전체 스코어카드</button>`);}
+function showRelief(){const p=state.round.players[state.round.active];modal(`<span class="eyebrow">PLPARK RULE GUIDE</span><h2 id="modal-title">${p.needsRelief?'워터 해저드에 들어갔어요':'언플레이어블을 선언할까요?'}</h2><div class="rule-mascot">${mascot('mascot-reaction','encourage')}</div><p>${p.needsRelief?'이 코스의 물에서는 샷을 할 수 없어요. 언플레이어블 2벌타를 더하고, 공을 놓을 자리가 없으면 공지된 OB 티로 이동해요.':'2벌타를 더하고 홀컵에 가까워지지 않는 2클럽 이내의 칠 수 있는 곳으로 이동해요.'}</p><button class="primary full" data-action="confirm-relief">2벌타 확인 · 처치하기</button><button class="text-button full" data-action="close">${p.needsRelief?'코스 다시 살펴보기':'현재 위치에서 플레이'}</button>`);}
+function holeResult(){modal(holeResultView(state.round));modalRoot.querySelector('.modal').classList.add('hole-result-modal');}
 function quiz(id,inGame=false){
  const q=byId.get(id);if(!q)return;
  const choices=shuffledAnswers(q),serial=++quizSerial;
@@ -172,7 +173,7 @@ function answer(btn){
  state.quizProgress=recordAnswer(state.quizProgress,q.id,correct);write('quiz-progress',state.quizProgress);
  if(current.inGame){state.round.quizDone??={};state.round.quizDone[state.round.holeIndex]=true;write('round',state.round);}else if(practice){practice.correct+=Number(correct);}
  modalRoot.querySelectorAll('[data-action="answer"]').forEach((b,i)=>{b.disabled=true;if(current.choices[i].correct)b.classList.add('correct');else if(b===btn)b.classList.add('wrong');});
- const feedback=$('#quiz-feedback');feedback.innerHTML=`<div class="quiz-explanation"><strong class="${correct?'correct-text':'wrong-text'}">${correct?'정답이에요!':'괜찮아요, 함께 알아봐요.'}</strong><p class="quiz-correct-answer">정답 · ${escape(q.answers[q.correct])}</p><div class="quiz-caddy">${mascot()}<p>${escape(q.explanation)}</p></div>${correct?'':'<p class="quiz-review-note">오답 노트에 저장했어요. 나중에 다시 맞히면 복습 목록에서 빠져요.</p>'}</div><button class="primary full" data-action="${current.inGame?'advance':'next-quiz'}">${current.inGame?'라운드 계속하기':practice.used.length>=practice.size?'학습 결과 보기':'다음 문제 풀기'} ${icon('arrow',17)}</button>`;
+ const feedback=$('#quiz-feedback');feedback.innerHTML=`<div class="quiz-explanation"><strong class="${correct?'correct-text':'wrong-text'}">${correct?'정답이에요!':'괜찮아요, 함께 알아봐요.'}</strong><p class="quiz-correct-answer">정답 · ${escape(q.answers[q.correct])}</p><div class="quiz-caddy">${mascot('mascot-reaction',correct?'praise':'encourage')}<p>${escape(q.explanation)}</p></div>${correct?'':'<p class="quiz-review-note">오답 노트에 저장했어요. 나중에 다시 맞히면 복습 목록에서 빠져요.</p>'}</div><button class="primary full" data-action="${current.inGame?'advance':'next-quiz'}">${current.inGame?'라운드 계속하기':practice.used.length>=practice.size?'학습 결과 보기':'다음 문제 풀기'} ${icon('arrow',17)}</button>`;
  modalRoot.querySelector('.quiz-skip')?.remove();feedback.focus({preventScroll:true});feedback.scrollIntoView({block:'nearest',behavior:'smooth'});
  if(correct)sound('cup');
 }
@@ -188,7 +189,7 @@ function nextPractice(){
  const q=practice.used.length<practice.size?pickQuestion({pool:practice.pool,progress:state.quizProgress,used:practice.used,review:practice.review}):null;
  if(q){practice.used.push(q.id);quiz(q.id);return;}
  const answered=practice.used.length,correct=practice.correct,s=stats(state.quizProgress);activeQuiz=null;
- rulesPage();modal(`<span class="eyebrow">오늘도 한 걸음!</span><h2 id="modal-title">${answered}문제를 함께 풀었어요</h2><div class="result-mascot">${mascot()}</div><div class="quiz-session-result"><b>${correct} / ${answered}</b><span>이번 학습에서 맞힌 문제</span></div><p>지금까지 ${s.seen}문제를 만났어요. ${s.review?'틀린 '+s.review+'문제는 오답 복습에서 다시 만나요.':'배운 규칙을 다음 라운드에서 떠올려 보세요.'}</p><button class="primary full" data-action="finish-quiz">규칙 노트로 돌아가기</button>`);
+ rulesPage();modal(`<span class="eyebrow">오늘도 한 걸음!</span><h2 id="modal-title">${answered}문제를 함께 풀었어요</h2><div class="result-mascot">${mascot('mascot-reaction','celebrate')}</div><div class="quiz-session-result"><b>${correct} / ${answered}</b><span>이번 학습에서 맞힌 문제</span></div><p>지금까지 ${s.seen}문제를 만났어요. ${s.review?'틀린 '+s.review+'문제는 오답 복습에서 다시 만나요.':'배운 규칙을 다음 라운드에서 떠올려 보세요.'}</p><button class="primary full" data-action="finish-quiz">규칙 노트로 돌아가기</button>`);
 }
 function nextStep(){const r=state.round;if(r.status!=='hole-complete')return;if(state.help&&!r.quizDone?.[r.holeIndex]){const q=roundQuestion(r,state.quizProgress);write('round',r);if(q){quiz(q.id,true);return;}}advance();}
 
