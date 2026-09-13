@@ -1,10 +1,11 @@
 import {lessons} from './lessons.js';
 import {importedQuestions,quizSource} from './quiz-bank.js';
+import {scenarioQuestions} from './quiz-scenarios.js';
 export {quizSource};
 export const topics={basics:'기본·용구',tee:'티샷·순서',stroke:'타격·스윙',green:'그린·마크',score:'점수 계산',relief:'OB·처치',manners:'안전·매너'};
 export const levels={1:'쉬움',2:'보통',3:'도전'};
 const coreTopics=['tee','score','relief','tee','basics','stroke','green','manners','tee'];
-export const questions=[...lessons.map((l,i)=>({...l,id:`core-${i}`,topic:coreTopics[i],category:l.tag,difficulty:1})),...importedQuestions];
+export const questions=[...lessons.map((l,i)=>({...l,id:`core-${i}`,topic:coreTopics[i],category:l.tag,difficulty:1})),...importedQuestions,...scenarioQuestions];
 export const byId=new Map(questions.map(q=>[q.id,q]));
 export function normalizeProgress(raw,legacy=[]){
  const progress={};
