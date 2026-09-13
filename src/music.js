@@ -1,96 +1,95 @@
-// Original score for Park Player: an unhurried, lightly syncopated walking theme.
-// MIDI pitches, beats, and synthetic instruments are authored here; no recordings required.
-export const MUSIC={title:'초록빛 라운드',bpm:94,bars:32,beatsPerBar:4};
-const chords=[
- {root:50,notes:[62,66,69,73]}, {root:47,notes:[62,66,69,71]},
- {root:43,notes:[59,62,66,69]}, {root:45,notes:[61,64,69,71]},
- {root:50,notes:[62,66,69,74]}, {root:47,notes:[59,62,66,69]},
- {root:43,notes:[59,62,66,69]}, {root:45,notes:[61,64,67,71]},
-];
-// Two complementary 8-bar phrases. Rests leave room for shot feedback.
-const phrases=[
- [[0,69,1],[1.5,66,.5],[2,64,1],[3,66,.65]],
- [[.5,66,.75],[1.5,69,.5],[2.5,71,1]],
- [[0,71,1],[1.5,69,.5],[2,66,.75],[3,62,.65]],
- [[0,64,1.5],[2,61,.5],[3,64,.7]],
- [[0,66,.75],[1,69,.75],[2,74,1.5]],
- [[.5,73,.75],[1.5,71,.5],[2.5,69,1]],
- [[0,66,1],[1.5,64,.5],[2,62,1]],
- [[.5,64,.75],[1.5,61,.5],[2.5,69,.75]],
- [[0,74,1],[1.5,73,.5],[2,69,1]],
- [[.5,71,.75],[1.5,69,.5],[2.5,66,1]],
- [[0,67,.75],[1,66,.75],[2,62,1.5]],
- [[.5,64,1],[2,66,.5],[3,69,.75]],
- [[0,74,1.5],[2,69,.65],[3,66,.65]],
- [[.5,66,.75],[1.5,69,.5],[2.5,71,1]],
- [[0,69,1],[1.5,66,.5],[2.5,62,.9]],
- [[0,64,1],[1.5,61,.5],[2.5,62,.75]],
-];
-export function musicBar(index,{focus=false}={}){
- const bar=((index%32)+32)%32,chord=chords[bar%8],events=[];
+import {MUSIC,musicTheme,musicForCourse} from './music-scores.js';
+export {MUSIC,MUSIC_THEMES,musicTheme,musicForCourse} from './music-scores.js';
+export function musicBar(index,{focus=false,theme=MUSIC.id,variation=0}={}){
+ const score=musicTheme(theme),variant=((Math.trunc(variation)||0)%4+4)%4;
+ const bar=((index+variant*8)%score.bars+score.bars)%score.bars,chord=score.chords[bar%8],events=[];
  const add=(voice,beat,note,beats,gain)=>events.push({voice,beat,note,beats,gain});
- const air=bar>=16,phrase=phrases[bar%16];
- // Warm broken chords and a soft, regular bass keep the round moving.
- for(const [i,beat] of [0, .75, 1.5, 2.5, 3.25].entries())add('pluck',beat,chord.notes[[0,2,1,3,2][i]],.9,air?.11:.13);
- add('bass',0,chord.root,1.65,.25);add('bass',2,chord.root+7,1.5,.19);
- for(const [beat,note,beats] of phrase)add(air?'felt':'piano',beat,note,beats,air?.22:.21);
- if(bar%4===0||air)for(const note of chord.notes.slice(0,3))add('pad',.05,note-12,3.85,.032);
- // Brushed ticks and a rounded low pulse, with no sharp cymbals or heavy kick.
- for(let i=0;i<8;i++)add('brush',i*.5+(i%2?.035:0),0,.16,i%2?.021:.013);
- add('pulse',0,38,.2,.075);add('pulse',2,38,.2,.06);
- if(focus)for(const beat of [.5,1.5,2.5,3.5])add('pluck',beat,chord.notes[2],.35,.045);
+ const air=bar>=16,meter=score.beatsPerBar,phrase=score.phrases[bar%16];
+ const order=variant%2?[2,0,3,1,2]:[0,2,1,3,2];
+ for(const [i,beat] of score.pattern.entries())add(score.backing,beat,chord.notes[order[i]],.85,air?.1:.12);
+ add('bass',0,chord.root,meter===3?1.3:1.65,.23);
+ add('bass',meter===3?2:2.5,chord.root+7,meter===3?.7:1.2,.16);
+ for(const [beat,note,beats] of phrase)add(air?score.alternate:score.lead,beat,note,beats,.21);
+ if(bar%4===0||air||theme==='water'||theme==='highland')for(const note of chord.notes.slice(0,3))add('pad',.05,note-12,meter-.15,.028);
+ for(let i=0;i<meter*2;i++)add('brush',i*.5+(i%2?.035:0),0,.16,i%2?.019:.011);
+ add('pulse',0,38,.2,.065);if(meter===4)add('pulse',2,38,.2,.05);
+ if(focus)for(let beat=.5;beat<meter;beat++)add(score.backing,beat,chord.notes[2],.35,.04);
  return events.sort((a,b)=>a.beat-b.beat);
 }
 const cache=new WeakMap(),hz=m=>440*2**((m-69)/12);
 function sample(ctx,voice,note,seconds){
  let buffers=cache.get(ctx);if(!buffers){buffers=new Map();cache.set(ctx,buffers);}
- const key=voice+':'+note+':'+seconds.toFixed(3);if(buffers.has(key))return buffers.get(key);
+ const key=voice+':'+note+':'+seconds.toFixed(3);if(buffers.has(key)){const hit=buffers.get(key);buffers.delete(key);buffers.set(key,hit);return hit;}
  const duration=seconds+(voice==='pad'?.55:.2),buffer=ctx.createBuffer(1,Math.ceil(ctx.sampleRate*duration),ctx.sampleRate),data=buffer.getChannelData(0),frequency=hz(note);let seed=8137;
  for(let i=0;i<data.length;i++){
   const t=i/ctx.sampleRate,release=Math.min(1,Math.max(0,(duration-t)/.18));let value=0;
   if(voice==='brush'){
    seed=(1664525*seed+1013904223)>>>0;value=(seed/2147483648-1)*Math.sin(Math.min(1,t/.008)*Math.PI/2)*Math.exp(-t*35);
   }else if(voice==='pulse')value=Math.sin(2*Math.PI*(hz(38)*t+6*(1-Math.exp(-t*20))/20))*Math.min(1,t/.016)*Math.exp(-t*20);
+  else if(voice==='flute')value=(Math.sin(2*Math.PI*frequency*t+.009*Math.sin(2*Math.PI*4*t))+.09*Math.sin(4*Math.PI*frequency*t))*.72*Math.min(1,t/.07)*Math.exp(-t*.5);
+  else if(voice==='marimba')value=(Math.sin(2*Math.PI*frequency*t)*Math.exp(-t*2.3)+.22*Math.sin(2*Math.PI*frequency*3.99*t)*Math.exp(-t*8))*.72*Math.min(1,t/.016);
   else if(voice==='pad')value=(Math.sin(2*Math.PI*frequency*t)+.18*Math.sin(2*Math.PI*frequency*1.003*t))*.7*Math.min(1,t/.35)*Math.min(1,(duration-t)/.55);
   else{
-   const bass=voice==='bass',felt=voice==='felt',pluck=voice==='pluck',attack=bass?.018:pluck?.012:.026,decay=bass?1.1:pluck?3:felt?1.45:1.7;
-   const amplitudes=bass?[1,.18,.04]:pluck?[1,.31,.12,.035]:felt?[1,.15,.035]:[1,.24,.07,.025];
+   const bass=voice==='bass',felt=voice==='felt',pluck=voice==='pluck',guitar=voice==='guitar',attack=bass?.018:pluck?.012:guitar?.02:.026,decay=bass?1.1:pluck?3:guitar?2.15:felt?1.45:1.7;
+   const amplitudes=guitar?[1,.36,.14,.06,.018]:bass?[1,.18,.04]:pluck?[1,.31,.12,.035]:felt?[1,.15,.035]:[1,.24,.07,.025];
    for(let h=1;h<=amplitudes.length;h++)value+=amplitudes[h-1]*Math.sin(2*Math.PI*frequency*h*(1+(h-1)*.0003)*t)*Math.exp(-t*decay*(.7+h*.3));
    value*=Math.min(1,t/attack)*.68;
   }
   data[i]=value*release;
  }
- // The finite score bounds this cache.
- buffers.set(key,buffer);return buffer;
+ // Bound memory when visiting many scores on a phone; evicted buffers can be regenerated.
+ buffers.set(key,buffer);if(buffers.size>128)buffers.delete(buffers.keys().next().value);return buffer;
 }
 export function createMusicMix(ctx,destination){
  const input=ctx.createGain(),tone=ctx.createBiquadFilter(),master=ctx.createGain();tone.type='lowpass';tone.frequency.value=2600;tone.Q.value=.4;master.gain.value=.42;
  input.connect(tone);tone.connect(master);master.connect(destination);return {input,master};
 }
-export function scheduleMusicBar(ctx,destination,index,at,{focus=false}={}){
- const beat=60/MUSIC.bpm,nodes=[];
- for(const event of musicBar(index,{focus})){
+export function scheduleMusicBar(ctx,destination,index,at,options={}){
+ const beat=60/musicTheme(options.theme).bpm,nodes=[];
+ for(const event of musicBar(index,options)){
   const source=ctx.createBufferSource(),gain=ctx.createGain();source.buffer=sample(ctx,event.voice,event.note,event.beats*beat);gain.gain.value=event.gain;source.connect(gain);gain.connect(destination);
   source.addEventListener('ended',()=>{source.disconnect();gain.disconnect();},{once:true});source.start(at+event.beat*beat);nodes.push(source);
  }
  return nodes;
 }
+// One context/clock. Per-course buses fade independently, so a pending old bar cannot
+// leak into the new course or restart after mute, pause, or backgrounding.
 export function createGameMusic(isEnabled){
- let ctx,mix,desired=false,playing=false,focused=false,timer=null,suspendTimer=null,duckTimer=null,bar=0,next=0,ducked=false;
- const active=new Set(),barLength=60/MUSIC.bpm*4;
+ let ctx,mix,desired=false,playing=false,focused=false,timer=null,suspendTimer=null,duckTimer=null;
+ let bar=0,next=0,ducked=false,part=null,profile=musicForCourse(null),courseKey='';
+ const retired=new Set();
  function volume(){if(!mix)return;const param=mix.master.gain;param.cancelScheduledValues(ctx.currentTime);param.setTargetAtTime(playing?(ducked?.14:.42):0,ctx.currentTime,.09);}
+ function fade(bus,target,seconds){
+  const p=bus.gain,t=ctx.currentTime;
+  if(p.cancelAndHoldAtTime)p.cancelAndHoldAtTime(t);else{p.cancelScheduledValues(t);p.setValueAtTime(p.value,t);}
+  p.linearRampToValueAtTime(target,t+seconds);
+ }
+ function cleanPart(old){if(old&&retired.has(old)&&!old.sources.size){old.bus.disconnect();retired.delete(old);}}
+ function retire(old,immediate=false){
+  if(!old)return;retired.add(old);fade(old.bus,0,immediate?.005:.22);
+  for(const source of old.sources){try{source.stop(ctx.currentTime+(immediate?0:.24));}catch{}}
+  cleanPart(old);
+ }
+ function newPart(){const bus=ctx.createGain();bus.gain.value=0;bus.connect(mix.input);fade(bus,1,.45);return {bus,sources:new Set()};}
  function tick(){
-  if(!playing||ctx.state!=='running')return;
+  if(!playing||!part||ctx.state!=='running')return;
   if(next<ctx.currentTime-.1)next=ctx.currentTime+.06;
-  while(next<ctx.currentTime+.3){for(const source of scheduleMusicBar(ctx,mix.input,bar,next,{focus:focused})){active.add(source);source.addEventListener('ended',()=>active.delete(source),{once:true});}next+=barLength;bar=(bar+1)%MUSIC.bars;}
+  const score=musicTheme(profile.theme);
+  while(next<ctx.currentTime+.3){
+   const current=part;
+   for(const source of scheduleMusicBar(ctx,current.bus,bar,next,{...profile,focus:focused})){
+    current.sources.add(source);source.addEventListener('ended',()=>{current.sources.delete(source);cleanPart(current);},{once:true});
+   }
+   next+=60/score.bpm*score.beatsPerBar;bar=(bar+1)%score.bars;
+  }
  }
  function ensure(){if(ctx)return ctx;const Audio=globalThis.AudioContext||globalThis.webkitAudioContext;if(!Audio)return null;ctx=new Audio();mix=createMusicMix(ctx,ctx.destination);mix.master.gain.value=0;return ctx;}
  function start(){
   if(!desired||!isEnabled())return;
   try{
    const c=ensure();if(!c)return;clearTimeout(suspendTimer);
-   if(!playing){playing=true;next=c.currentTime+.06;volume();timer=setInterval(tick,120);}
-   // Called synchronously from game entry or a user gesture for iOS autoplay rules.
+   if(!playing){playing=true;part=newPart();next=c.currentTime+.06;volume();timer=setInterval(tick,120);}
+   // Synchronous resume from game entry / user gesture supports mobile autoplay rules.
    if(c.state!=='running')c.resume().then(()=>{if(playing)tick();else c.suspend().catch(()=>{});}).catch(()=>{});else tick();
   }catch{stop();}
  }
@@ -98,11 +97,18 @@ export function createGameMusic(isEnabled){
   if(!playing&&!immediate)return;
   clearInterval(timer);timer=null;clearTimeout(suspendTimer);clearTimeout(duckTimer);ducked=false;
   if(!ctx){playing=false;return;}const wasPlaying=playing;playing=false;volume();
-  for(const source of active){try{source.stop(ctx.currentTime+(immediate?0:.25));}catch{}}active.clear();
-  if(immediate){mix.master.gain.cancelScheduledValues(ctx.currentTime);mix.master.gain.value=0;ctx.suspend().catch(()=>{});}
-  else if(wasPlaying)suspendTimer=setTimeout(()=>{if(!playing)ctx.suspend().catch(()=>{});},280);
+  retire(part,immediate);part=null;
+  if(immediate){
+   for(const old of [...retired])retire(old,true);
+   mix.master.gain.cancelScheduledValues(ctx.currentTime);mix.master.gain.value=0;ctx.suspend().catch(()=>{});
+  }else if(wasPlaying)suspendTimer=setTimeout(()=>{if(!playing)ctx.suspend().catch(()=>{});},280);
  }
  return {
+  setCourse(course){
+   const selected=musicForCourse(course),key=(course?.id||'')+':'+selected.theme+':'+selected.variation;
+   if(key===courseKey)return;courseKey=key;profile=selected;bar=0;
+   if(playing){retire(part);part=newPart();next=ctx.currentTime+.06;tick();}
+  },
   setActive(value){desired=Boolean(value);desired&&isEnabled()?start():stop();},
   setFocus(value){focused=Boolean(value);},
   refresh(){desired&&isEnabled()?start():stop();},
