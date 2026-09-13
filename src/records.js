@@ -5,7 +5,7 @@ export function recordHoles(record){
   if(record.holes?.length===18)return record.holes;
   try{return createLayout(record.courseIds).map(({number,par,courseId,courseName,courseVersion})=>({number,par,courseId,courseName,courseVersion}));}catch{return [];}
 }
-export function validRecord(r){return !!r&&typeof r.id==='string'&&typeof r.key==='string'&&Array.isArray(r.players)&&r.players.length>0&&r.players.every(p=>typeof p.name==='string'&&p.scores?.length===18&&p.scores.every(s=>Number.isInteger(s)&&s>0));}
+export function validRecord(r){return !!r&&typeof r.id==='string'&&typeof r.key==='string'&&Array.isArray(r.players)&&r.players.length>0&&r.players.every(p=>typeof p?.name==='string'&&Array.isArray(p.scores)&&p.scores.length===18&&p.scores.every(s=>Number.isInteger(s)&&s>0));}
 export function mergeRecords(...lists){return [...new Map(lists.flat().filter(validRecord).map(r=>[r.id,r])).values()].sort((a,b)=>String(b.completedAt).localeCompare(String(a.completedAt)));}
 export function makeRecord(r){return {id:r.id,key:r.key,courseIds:[...r.courseIds],ruleset:r.ruleset,physics:r.physics,startedAt:r.startedAt,completedAt:r.completedAt,holes:r.layout.map(({number,par,courseId,courseName,courseVersion})=>({number,par,courseId,courseName,courseVersion})),players:r.players.map(p=>({id:p.id,name:p.name,scores:[...p.scores],penalties:[...p.penalties]})),log:structuredClone(r.log)};}
 export function entriesFor(records,name,key){return mergeRecords(records).filter(r=>!key||r.key===key).flatMap(r=>r.players.filter(p=>!name||p.name===name).map(p=>({record:r,player:p,total:scoreTotal(p),penalties:sum(p.penalties||[])})));}
