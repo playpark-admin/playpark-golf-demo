@@ -1,4 +1,5 @@
-import {inBounds} from './engine.js';
+import {inBounds,inwardNormal} from './geometry.js';
+import {boundarySetting} from './course-features.js';
 
 // Trace the same playable predicate used by OB judging, including clipped plot edges.
 // One-metre cells are refined at crossings; the result is cached for each hole object.
@@ -40,13 +41,26 @@ export function boundaryStakes(loop,spacing=8){
  }return stakes;
 }
 const n=value=>Number(value.toFixed(3));
-const path=(points,lift=0)=>points.map((p,i)=>`${i?'L':'M'}${n(p.x)} ${n(p.y-lift)}`).join(' ')+'Z';
-export function boundaryArt(h){
- const loops=boundaryLoops(h),netId='ob-net-'+h.id.replace(/[^a-zA-Z0-9_-]/g,'-'),lift=2.3;
- const fences=loops.map(loop=>{
-  const ground=path(loop),rail=path(loop,lift),mesh=path(loop)+' '+path([...loop].reverse(),lift);
-  return `<path class="ob-fence-shadow" d="${ground}"/><path class="ob-fence-panel" d="${mesh}" fill-rule="evenodd"/><path class="ob-fence-mesh" d="${mesh}" fill="url(#${netId})" fill-rule="evenodd"/><path class="ob-fence-rail" d="${rail}"/><path class="ob-boundary-line" d="${ground}"/>`;
- }).join('');
- const posts=loops.flatMap(loop=>boundaryStakes(loop)).sort((a,b)=>a.y-b.y).map(p=>`<g class="ob-stake" data-x="${n(p.x)}" data-y="${n(p.y)}"><ellipse cx="${n(p.x+.55)}" cy="${n(p.y+.25)}" rx="1" ry=".35" fill="#243c3438"/><path class="ob-stake-body" d="M${n(p.x)} ${n(p.y)}v-2.9"/><path class="ob-stake-cap" d="M${n(p.x)} ${n(p.y-2.65)}v-.25"/></g>`).join('');
- return `<g class="ob-fence" aria-hidden="true" pointer-events="none"><defs><pattern id="${netId}" width="1.6" height="1.6" patternUnits="userSpaceOnUse"><path d="M0 0L1.6 1.6M0 1.6L1.6 0" fill="none" stroke="#244e45" stroke-width=".18"/></pattern></defs>${fences}${posts}</g>`;
+const path=(points,lift=0)=>points.map((p,i)=>`${i?'L':'M'} ${n(p.x)} ${n(p.y-lift)}`).join(' ');
+// Split at fine intervals so physical section transitions and visible endpoints agree.
+const sectionsCache=new WeakMap();
+export function boundarySections(h){
+ if(sectionsCache.has(h))return sectionsCache.get(h);
+ const parts=[];
+ for(const loop of boundaryLoops(h))for(let i=1;i<loop.length;i++){
+  const a=loop[i-1],b=loop[i],steps=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/.12));
+  for(let j=0;j<steps;j++){const p={x:a.x+(b.x-a.x)*j/steps,y:a.y+(b.y-a.y)*j/steps},q={x:a.x+(b.x-a.x)*(j+1)/steps,y:a.y+(b.y-a.y)*(j+1)/steps},setting=boundarySetting({x:(p.x+q.x)/2,y:(p.y+q.y)/2},h),last=parts.at(-1);
+   if(last&&last.type===setting.type&&last.fence===setting.fence&&Math.hypot(last.points.at(-1).x-p.x,last.points.at(-1).y-p.y)<1e-7)last.points.push(q);else parts.push({...setting,points:[p,q]});
+  }
+ }
+ for(const part of parts){const points=[];for(const p of part.points){if(points.length>1){const a=points.at(-2),b=points.at(-1);if(Math.abs((b.x-a.x)*(p.y-b.y)-(b.y-a.y)*(p.x-b.x))<1e-8)points.pop();}points.push(p);}part.points=points;}
+ sectionsCache.set(h,parts);return parts;
+}
+export function boundaryArt(h,{horizontal=false}={}){
+ const sections=boundarySections(h),netId='ob-net-'+h.id.replace(/[^a-zA-Z0-9_-]/g,'-'),lift=2.3;
+ const lines=sections.map(s=>'<path class="ob-boundary-line boundary-'+s.type+'" d="'+path(s.points)+'"/>').join('');
+ const raised=p=>{const normal=inwardNormal(p,h);return {x:p.x-normal.x*.85-(horizontal?lift:0),y:p.y-normal.y*.85-(horizontal?0:lift)};};
+ const fences=sections.filter(s=>s.fence).map(s=>{const top=s.points.map(raised),mesh=path(s.points)+' '+path([...top].reverse()).replace('M','L')+'Z',supports=[s.points[0],s.points.at(-1)].map(p=>'<path class="ob-fence-rail" d="'+path([p,raised(p)])+'"/>').join('');return '<g class="net-section"><path class="ob-fence-shadow" d="'+path(s.points)+'"/><path class="ob-fence-panel" d="'+mesh+'"/><path class="ob-fence-mesh" d="'+mesh+'" fill="url(#'+netId+')"/><path class="ob-fence-rail" d="'+path(top)+'"/>'+supports+'</g>';}).join('');
+ const posts=boundaryLoops(h).flatMap(loop=>boundaryStakes(loop,6)).sort((a,b)=>a.y-b.y).map(p=>{const type=boundarySetting(p,h).type;return '<g class="ob-stake stake-'+type+'" transform="'+(horizontal?'rotate(-90 '+n(p.x)+' '+n(p.y)+')':'')+'" data-type="'+type+'" data-x="'+n(p.x)+'" data-y="'+n(p.y)+'"><ellipse cx="'+n(p.x+.55)+'" cy="'+n(p.y+.25)+'" rx="1" ry=".35" fill="#243c3438"/><path class="ob-stake-outline" d="M'+n(p.x)+' '+n(p.y)+'v-2.9"/><path class="ob-stake-body" d="M'+n(p.x)+' '+n(p.y)+'v-2.9"/><path class="ob-stake-cap" d="M'+n(p.x)+' '+n(p.y-2.65)+'v-.25"/></g>';}).join('');
+ return '<g class="ob-fence" aria-hidden="true" pointer-events="none"><defs><pattern id="'+netId+'" width="1.6" height="1.6" patternUnits="userSpaceOnUse"><path d="M0 0L1.6 1.6M0 1.6L1.6 0" fill="none" stroke="#244e45" stroke-width=".18"/></pattern></defs>'+fences+lines+posts+'</g>';
 }

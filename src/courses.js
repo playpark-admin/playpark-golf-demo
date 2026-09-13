@@ -1,8 +1,9 @@
+import {addCourseFeatures,validateFeatures} from './course-features.js';
 import {validateTerrain} from './terrain.js';
 import {additionalCourses} from './course-expansion.js';
 // Course packs are independently versioned. Geometry uses metres; visuals use the same data.
-export const RULESET = 'kpga-2024.02.05-game-2';
-export const PHYSICS = 'roll-3-terrain';
+export const RULESET = 'kpga-2024.02.05-game-3';
+export const PHYSICS = 'roll-4-collisions';
 const pars = [3,4,3,4,5,3,4,3,4];
 const distances = [40,65,45,60,100,35,70,50,65];
 const specs = [
@@ -11,7 +12,7 @@ const specs = [
   {id:'sunset',name:'노을 언덕',english:'SUNSET HILLS',letter:'C',tag:'도전하는 재미',level:3,unlockLevel:2,description:'황금빛 언덕에서 만나는 짜릿한 도전',color:'#b88524',light:'#f8e3a7',accent:'#aaca58',width:9},
   {id:'blossom',name:'벚꽃 정원',english:'BLOSSOM GARDEN',letter:'D',tag:'설레는 라운드',level:2,description:'꽃잎이 내려앉은 길, 기분 좋은 플레이',color:'#b96683',light:'#f4dfe6',accent:'#97bf71',width:11}
 ];
-export const courses = specs.map((s,ci)=>({...s,version:3,par:33,holes:pars.map((par,i)=>{
+export const courses = specs.map((s,ci)=>({...s,version:4,par:33,holes:pars.map((par,i)=>{
   const length=distances[i];const bend=(i%3-1)*(3+ci*3);const tee={x:36+(i%2)*6,y:length+22};const cup={x:36+(i%2)*6+bend,y:22};
   const middle={x:tee.x+bend+(i%2?1:-1)*(ci+1)*4,y:(tee.y+cup.y)/2};
   const sand=(i>0||ci>0)?[{x:cup.x+(i%2?12:-12),y:cup.y+12,rx:5+ci,ry:7}]:[];
@@ -21,16 +22,16 @@ export const courses = specs.map((s,ci)=>({...s,version:3,par:33,holes:pars.map(
     {x:cup.x+side*7,y:cup.y+9,rx:12,ry:13,height:-strength*.45}
   ]};
   const water=ci===1?[{x:18+(i%2)*38,y:middle.y,rx:9,ry:13}]:[];
-  return {id:`${s.id}-${i+1}`,number:i+1,par,length:Math.round(Math.hypot(tee.x-cup.x,tee.y-cup.y)),width:80,height:length+44,tee,cup,terrain,fairway:[tee,middle,cup],fairwayWidth:s.width,roughWidth:1.5,greenRadius:9,sand,water,
+  return addCourseFeatures({id:`${s.id}-${i+1}`,number:i+1,par,length:Math.round(Math.hypot(tee.x-cup.x,tee.y-cup.y)),width:80,height:length+44,tee,cup,terrain,fairway:[tee,middle,cup],fairwayWidth:s.width,roughWidth:1.5,greenRadius:9,sand,water,
     trees:[{x:13,y:20,r:2.4},{x:67,y:37,r:2.5},{x:13,y:tee.y-9,r:2.1},{x:65,y:tee.y-8,r:2.4},...(ci===2?[{x:middle.x+10,y:middle.y-6,r:2.7}]:[])],
-    bounds:{left:5,right:75,top:5,bottom:length+39},lesson:i};
+    bounds:{left:5,right:75,top:5,bottom:length+39},lesson:i},ci,i);
 })}));
 export function validateCourse(c){
   if(!c||typeof c.id!=='string'||!Number.isInteger(c.version)||c.holes?.length!==9)throw Error('코스는 ID, 버전, 9개 홀이 필요합니다.');
   if(c.unlockLevel!==undefined&&(!Number.isInteger(c.unlockLevel)||c.unlockLevel<1||c.unlockLevel>7))throw Error('코스 해제 등급은 1~7이어야 합니다.');
   if(c.holes.reduce((n,h)=>n+h.par,0)!==33)throw Error('코스의 기준 타수는 33이어야 합니다.');
   if(new Set(c.holes.map(h=>h.id)).size!==9)throw Error('홀 ID는 고유해야 합니다.');
-  for(const h of c.holes){validateTerrain(h.terrain);if(![3,4,5].includes(h.par)||h.width<=0||h.height<=0||!Number.isFinite(h.roughWidth)||h.roughWidth<0||!Number.isFinite(h.fairwayWidth)||h.fairwayWidth<=0)throw Error('홀 규격 오류');for(const p of [h.tee,h.cup,...h.fairway])if(!Number.isFinite(p.x)||!Number.isFinite(p.y)||p.x<h.bounds.left||p.x>h.bounds.right||p.y<h.bounds.top||p.y>h.bounds.bottom)throw Error('홀 좌표 오류');}
+  for(const h of c.holes){validateTerrain(h.terrain);validateFeatures(h);if(![3,4,5].includes(h.par)||h.width<=0||h.height<=0||!Number.isFinite(h.roughWidth)||h.roughWidth<0||!Number.isFinite(h.fairwayWidth)||h.fairwayWidth<=0)throw Error('홀 규격 오류');for(const p of [h.tee,h.cup,...h.fairway])if(!Number.isFinite(p.x)||!Number.isFinite(p.y)||p.x<h.bounds.left||p.x>h.bounds.right||p.y<h.bounds.top||p.y>h.bounds.bottom)throw Error('홀 좌표 오류');}
   return c;
 }
 courses.push(...additionalCourses);

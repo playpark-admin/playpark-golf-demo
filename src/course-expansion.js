@@ -1,3 +1,4 @@
+import {addCourseFeatures} from './course-features.js';
 // Additional, independently versioned nine-hole packs. Existing A–D geometry stays unchanged.
 const pars=[3,4,3,4,5,3,4,3,4];
 const profiles=[
@@ -22,6 +23,6 @@ function makeHole(s,i){
  ]};
  const trees=[{x:12,y:24,r:2.2},{x:80,y:34,r:2.5},{x:12,y:tee.y-8,r:2.3},{x:80,y:tee.y-6,r:2.1}];
  if(s.style==='trees')trees.push({x:low.x-side*7,y:low.y+3,r:1.8},{x:high.x+side*8,y:high.y-2,r:1.6});
- return {id:`${s.id}-${i+1}`,number:i+1,par:pars[i],length:Math.round(Math.hypot(tee.x-cup.x,tee.y-cup.y)),width:92,height:length+48,tee,cup,terrain,fairway:[tee,low,high,cup],fairwayWidth:s.width,roughWidth:1.5,greenRadius:9,sand,water,trees,bounds:{left:5,right:87,top:5,bottom:length+43},lesson:i};
+ return addCourseFeatures({id:`${s.id}-${i+1}`,number:i+1,par:pars[i],length:Math.round(Math.hypot(tee.x-cup.x,tee.y-cup.y)),width:92,height:length+48,tee,cup,terrain,fairway:[tee,low,high,cup],fairwayWidth:s.width,roughWidth:1.5,greenRadius:9,sand,water,trees,bounds:{left:5,right:87,top:5,bottom:length+43},lesson:i},profiles.indexOf(s)+4,i);
 }
-export const additionalCourses=profiles.map(s=>({id:s.id,name:s.name,english:s.english,letter:s.letter,tag:s.tag,level:s.level,unlockLevel:s.unlockLevel,description:s.description,color:s.color,light:s.light,accent:s.accent,version:1,par:33,preview:'map',holes:pars.map((_,i)=>makeHole(s,i))}));
+export const additionalCourses=profiles.map(s=>({id:s.id,name:s.name,english:s.english,letter:s.letter,tag:s.tag,level:s.level,unlockLevel:s.unlockLevel,description:s.description,color:s.color,light:s.light,accent:s.accent,version:2,par:33,preview:'map',holes:pars.map((_,i)=>makeHole(s,i))}));

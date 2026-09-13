@@ -22,8 +22,11 @@
 
 /* Mesh is transparent and all boundary decoration sits below the ball and cup layers. */
 .ob-fence{pointer-events:none}.ob-fence-shadow{fill:none;stroke:#173c31;stroke-width:1.2;opacity:.17}
-.ob-fence-panel{fill:#244e45;opacity:.12}.ob-fence-mesh{opacity:.6}
+.ob-fence-panel{fill:#244e45;opacity:.22}.ob-fence-mesh{opacity:.85}
 .ob-fence-rail{fill:none;stroke:#365851;stroke-width:1.35px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
 .ob-boundary-line{fill:none;stroke:#fff7df;stroke-width:1.6px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
 .ob-stake-body{fill:none;stroke:#d62f37;stroke-width:3.4px;vector-effect:non-scaling-stroke;stroke-linecap:round}
 .ob-stake-cap{fill:none;stroke:#ffe5da;stroke-width:2px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+
+/* Stake color describes the crossing rule; mesh exists only on solid net sections. */
+.ob-stake-outline{fill:none;stroke:#314a49;stroke-width:5px;vector-effect:non-scaling-stroke;stroke-linecap:round}.stake-white .ob-stake-body{stroke:#fffdf0}.stake-white .ob-stake-cap{stroke:#dce8e7}.boundary-red{stroke:#e0494b;stroke-width:2px}.boundary-white{stroke:#fffdf0}.impact-ring{fill:none;stroke:#fff9ad;stroke-width:3px;vector-effect:non-scaling-stroke;pointer-events:none}

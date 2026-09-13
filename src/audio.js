@@ -14,6 +14,8 @@ export function soundPlan(kind,{power=40,lie='fairway'}={}){
  if(kind==='cup-miss')return [...bell(1174,.0,.09),tone(580,270,.38,.1,.15,'triangle')];
  if(kind==='water')return [noise(1300,.3,.22),noise(500,.38,.14,.1),tone(320,120,.22,.11,.05),tone(240,90,.22,.09,.22)];
  if(kind==='sand')return [noise(900,.25,.15),tone(290,165,.16,.07),tone(392,294,.19,.07,.17,'triangle')];
+ if(kind==='fence')return [noise(600,.17,.18*volume),tone(145,65,.2,.18*volume,0,'triangle')];
+ if(kind==='rock')return [noise(3500,.035,.3*volume),tone(1050,280,.13,.23*volume,0,'triangle'),tone(1750,700,.08,.08*volume)];
  if(kind==='tree')return [noise(2300,.04,.22),tone(750,320,.09,.18,0,'triangle'),tone(480,260,.12,.1,.105,'triangle')];
  return [];
 }
