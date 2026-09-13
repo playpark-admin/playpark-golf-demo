@@ -18,3 +18,5 @@
 @media(max-height:740px) and (min-width:761px){.side-caddy{display:none}}
 @media(max-width:1100px){.help-grid{grid-template-columns:1fr}}
 @media(max-width:760px){:root{--app-header-height:calc(72px + var(--safe-top))}.app-header{padding:var(--safe-top) max(16px,var(--safe-right)) 0 max(16px,var(--safe-left))}.app-brand{gap:12px}.app-brand strong{font-size:29px}.app-logo{width:44px;height:44px;border-radius:11px}.mobile-nav{grid-template-columns:repeat(5,minmax(0,1fr))}.mobile-nav button{font-size:16px;min-height:56px;padding-inline:0}.help-card{padding:24px 20px}.help-card h2,.help-about h2{font-size:25px}.help-about dl>div{grid-template-columns:90px minmax(0,1fr);gap:12px}.help-card .guide-steps>div{gap:12px}.help-card .guide-steps>div>b{width:30px;height:30px;line-height:30px}.help-return{width:100%;justify-content:center}}
+
+.music-toggle{min-height:54px;font-size:19px;line-height:1.5}.music-toggle[aria-pressed="false"]{background:#eef2f3;color:#455d69;border-color:#ccd9dd}
