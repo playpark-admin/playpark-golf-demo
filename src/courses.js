@@ -8,7 +8,7 @@ const distances = [40,65,45,60,100,35,70,50,65];
 const specs = [
   {id:'forest',name:'숲속 산책',english:'FOREST WALK',letter:'A',tag:'처음이라면 추천',level:1,description:'초록빛 나무 사이, 편안한 첫 라운드',color:'#278c47',light:'#d4efae',accent:'#7aba47',width:13},
   {id:'lake',name:'물빛 호수',english:'LAKESIDE BLUE',letter:'B',tag:'정교한 한 수',level:2,description:'잔잔한 물결 따라, 신중하게 한 샷',color:'#218eaa',light:'#caeaf4',accent:'#7fbd76',width:11},
-  {id:'sunset',name:'노을 언덕',english:'SUNSET HILLS',letter:'C',tag:'도전하는 재미',level:3,description:'황금빛 언덕에서 만나는 짜릿한 도전',color:'#b88524',light:'#f8e3a7',accent:'#aaca58',width:9},
+  {id:'sunset',name:'노을 언덕',english:'SUNSET HILLS',letter:'C',tag:'도전하는 재미',level:3,unlockLevel:2,description:'황금빛 언덕에서 만나는 짜릿한 도전',color:'#b88524',light:'#f8e3a7',accent:'#aaca58',width:9},
   {id:'blossom',name:'벚꽃 정원',english:'BLOSSOM GARDEN',letter:'D',tag:'설레는 라운드',level:2,description:'꽃잎이 내려앉은 길, 기분 좋은 플레이',color:'#b96683',light:'#f4dfe6',accent:'#97bf71',width:11}
 ];
 export const courses = specs.map((s,ci)=>({...s,version:3,par:33,holes:pars.map((par,i)=>{
@@ -27,6 +27,7 @@ export const courses = specs.map((s,ci)=>({...s,version:3,par:33,holes:pars.map(
 })}));
 export function validateCourse(c){
   if(!c||typeof c.id!=='string'||!Number.isInteger(c.version)||c.holes?.length!==9)throw Error('코스는 ID, 버전, 9개 홀이 필요합니다.');
+  if(c.unlockLevel!==undefined&&(!Number.isInteger(c.unlockLevel)||c.unlockLevel<1||c.unlockLevel>7))throw Error('코스 해제 등급은 1~7이어야 합니다.');
   if(c.holes.reduce((n,h)=>n+h.par,0)!==33)throw Error('코스의 기준 타수는 33이어야 합니다.');
   if(new Set(c.holes.map(h=>h.id)).size!==9)throw Error('홀 ID는 고유해야 합니다.');
   for(const h of c.holes){validateTerrain(h.terrain);if(![3,4,5].includes(h.par)||h.width<=0||h.height<=0||!Number.isFinite(h.roughWidth)||h.roughWidth<0||!Number.isFinite(h.fairwayWidth)||h.fairwayWidth<=0)throw Error('홀 규격 오류');for(const p of [h.tee,h.cup,h.obTee,...h.fairway])if(!Number.isFinite(p.x)||!Number.isFinite(p.y)||p.x<h.bounds.left||p.x>h.bounds.right||p.y<h.bounds.top||p.y>h.bounds.bottom)throw Error('홀 좌표 오류');}

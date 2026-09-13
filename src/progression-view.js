@@ -1,3 +1,4 @@
+import {newlyUnlockedCourses} from './course-access.js';
 import {GROWTH_RULES,GROWTH_LEVELS,playerGrowth,roundGrowth,growthStandings} from './progression.js';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=n=>n.toLocaleString('ko-KR');
@@ -15,8 +16,8 @@ export function growthBoard(records){
 }
 export function roundGrowthView(record,records,{final=false,stored=true}={}){
  return `<section class="round-growth" aria-labelledby="round-growth-title"><h3 id="round-growth-title">${final?'이번 라운드 성장 포인트':'이 라운드에서 얻은 포인트'}</h3>${!stored?'<p class="growth-save-warning">아직 기기에 저장되지 않았어요. 아래 누적 포인트는 이번 화면에만 반영되어 있어요.</p>':''}${[...new Set(record.players.map(p=>p.name))].map(name=>{
- const a=roundGrowth(record,name),g=playerGrowth(records,name),before=playerGrowth(records.filter(r=>r.id!==record.id),name);
+ const a=roundGrowth(record,name),g=playerGrowth(records,name),before=playerGrowth(records.filter(r=>r.id!==record.id),name),opened=final&&stored?newlyUnlockedCourses(before.total,g.total):[];
  const bonus=[a.par?'파 '+a.par+'홀 · '+a.par*GROWTH_RULES.par+' P':'',a.birdie?'버디 '+a.birdie+'홀 · '+a.birdie*GROWTH_RULES.birdie+' P':'',a.eagle?'이글 이상 '+a.eagle+'홀 · '+a.eagle*GROWTH_RULES.eagle+' P':''].filter(Boolean);
- return `<div class="round-growth-player">${badge(g.current.level)}<div class="round-growth-name"><b>${esc(name)}</b><span>현재 LV ${g.current.level} · ${g.current.name}</span></div><strong class="growth-earned">+${num(a.total)} <small>P</small></strong><p class="growth-breakdown">완주 ${a.completion} P${bonus.length?' + '+bonus.join(' + '):''}${a.unrated?' · 기준 타수를 알 수 없는 '+a.unrated+'홀은 보너스 제외':''}</p>${final&&g.current.level>before.current.level?`<p class="growth-level-up">등급 상승! LV ${before.current.level} → LV ${g.current.level} · ${g.current.name}</p>`:''}<p class="growth-round-total">누적 <b>${num(g.total)} P</b> · ${nextText(g)}</p></div>`;
+ return `<div class="round-growth-player">${badge(g.current.level)}<div class="round-growth-name"><b>${esc(name)}</b><span>현재 LV ${g.current.level} · ${g.current.name}</span></div><strong class="growth-earned">+${num(a.total)} <small>P</small></strong><p class="growth-breakdown">완주 ${a.completion} P${bonus.length?' + '+bonus.join(' + '):''}${a.unrated?' · 기준 타수를 알 수 없는 '+a.unrated+'홀은 보너스 제외':''}</p>${final&&g.current.level>before.current.level?`<p class="growth-level-up">등급 상승! LV ${before.current.level} → LV ${g.current.level} · ${g.current.name}</p>`:''}${opened.length?`<p class="growth-course-unlocked">새 코스가 열렸어요!<br><b>${opened.map(c=>c.name).join(' · ')}</b></p>`:''}<p class="growth-round-total">누적 <b>${num(g.total)} P</b> · ${nextText(g)}</p></div>`;
  }).join('')}</section>`;
 }
