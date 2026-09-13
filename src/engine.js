@@ -10,14 +10,13 @@ export const CUP_RADIUS=.65;
 export const CUP_MAX_ENTRY_SPEED=4.8;
 export const friction={fairway:4.2,green:3.9,rough:4.65,sand:15,water:25,ob:4.65};
 export function expectedDistance(power,lie){return Math.max(.01,power)/100*85*(4.2/friction[lie]);}
-export function reliefPoint(origin,h,{allowFallback=false}={}){
+export function reliefPoint(origin,h){
   // A park-golf club is modelled as 0.86 m. Search the legal rear half-disc.
   const away=Math.atan2(origin.y-h.cup.y,origin.x-h.cup.x);
   for(let r=.08;r<=1.7201;r+=.08)for(let i=0;i<=120;i++){
     const a=away-Math.PI/2+i*Math.PI/120;const p={x:origin.x+Math.cos(a)*r,y:origin.y+Math.sin(a)*r};
     if(inBounds(p,h)&&lieAt(p,h)!=='water'&&distance(p,h.cup)>=distance(origin,h.cup)-1e-8&&!h.trees.some(t=>distance(p,t)<t.r+.1))return p;
   }
-  if(allowFallback)return {...h.obTee};
   return null;
 }
 export function obReliefPoint(origin,h){
@@ -65,11 +64,13 @@ export function takeShot(r,angle,power){
 }
 function settleTurn(r,p){if(p.holed){p.scores[r.holeIndex]=p.strokes+p.holePenalty;p.penalties[r.holeIndex]=p.holePenalty;}if(p.needsRelief)return;const next=nextPlayer(r);if(next===null)r.status='hole-complete';else r.active=next;}
 export function takeRelief(r){if(r.status!=='playing')throw Error('처치할 수 없는 상태입니다.');const p=r.players[r.active],h=r.layout[r.holeIndex];if(!p.strokes)throw Error('티샷 전에는 처치하지 않습니다.');const from={...p.ball};let relief=reliefPoint(p.ball,h);
-  if(!relief&&p.needsRelief){relief={...(h.waterObTee||h.obTee)};}
   if(!relief){
-    const previous=[...r.log].reverse().find(s=>s.player===p.id&&s.hole===r.holeIndex&&s.event!=='unplayable')?.from||h.tee;
+    const previous=[...r.log].reverse().find(s=>s.player===p.id&&s.hole===r.holeIndex&&s.event!=='unplayable')?.from;
+    // Rule 24: if the two-club area has no playable point, move toward the
+    // previous shot until play is possible. There is no fixed replacement tee.
+    if(!previous)throw Error('이전 샷 위치를 확인할 수 없어요.');
     const a=Math.atan2(previous.y-p.ball.y,previous.x-p.ball.x);
-    for(let d=.2;d<Math.max(h.width,h.height)*2;d+=.2){const candidate={x:p.ball.x+Math.cos(a)*d,y:p.ball.y+Math.sin(a)*d};if(inBounds(candidate,h)&&lieAt(candidate,h)!=='water'&&!h.trees.some(t=>distance(candidate,t)<t.r+.1)&&distance(candidate,h.cup)>=distance(from,h.cup)){relief=candidate;break;}}
+    for(let d=.2;d<Math.max(h.width,h.height)*2;d+=.2){const candidate={x:p.ball.x+Math.cos(a)*d,y:p.ball.y+Math.sin(a)*d};if(inBounds(candidate,h)&&lieAt(candidate,h)!=='water'&&!h.trees.some(t=>distance(candidate,t)<t.r+.1)){relief=candidate;break;}}
   }
   if(!relief)throw Error('처치 가능한 지점을 찾지 못했어요. 현재 위치에서 플레이해 주세요.');
   p.holePenalty+=2;p.ball=relief;p.needsRelief=false;r.log.push({hole:r.holeIndex,player:p.id,event:'unplayable',from,to:{...relief},penalty:2});settleTurn(r,p);return relief;}
