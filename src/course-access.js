@@ -8,9 +8,10 @@ export function courseAccess(course,points=0){
  if(!required)throw Error('유효한 코스 해제 등급이 필요합니다.');
  const growth=growthLevel(points);return {required,unlocked:growth.current.level>=level,remaining:Math.max(0,required.minimum-growth.total)};
 }
-export function roundAccess(ids,records,name){
+export function roundAccess(ids,records,name,{venueId}={}){
  const growth=playerGrowth(records,name),locked=ids.map(id=>courses.find(c=>c.id===id)).filter(c=>!courseAccess(c,growth.total).unlocked);
- return {growth,locked,allowed:ids.length===2&&new Set(ids).size===2&&!locked.length};
+ const venueValid=!venueId||ids.every(id=>courses.find(c=>c.id===id)?.venueId===venueId);
+ return {growth,locked,venueValid,allowed:ids.length===2&&new Set(ids).size===2&&!locked.length&&venueValid};
 }
 export function newlyUnlockedCourses(before,after){
  return courses.filter(c=>!courseAccess(c,before).unlocked&&courseAccess(c,after).unlocked);

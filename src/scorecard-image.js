@@ -10,7 +10,7 @@ export async function scorecardImage(record){
  box(0,0,w,h,'#f4f8ef');box(0,0,w,206,'#205e3d');
  let logo;try{logo=await new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=new URL('../assets/brand/playpark-symbol.png',import.meta.url).href;});}catch{}
  if(logo)ctx.drawImage(logo,54,44,110,110);
- text(APP_INFO.name,190,75,32,'#f5f9ef','left',700);text('우리의 18홀 스코어카드',190,132,46,'#fff','left',800);
+ text(APP_INFO.name,190,75,32,'#f5f9ef','left',700);const venueNames=[...new Set([holes[0].venueName,holes[9].venueName].filter(Boolean))];if(venueNames.length)text(venueNames.join(' · '),1148,75,25,'#f5f9ef','right',600);text('우리의 18홀 스코어카드',190,132,46,'#fff','left',800);
  text(new Date(record.completedAt).toLocaleString('ko-KR'),1148,182,24,'#deedcf','right');
  let y=249;text(`${holes[0].courseName}  →  ${holes[9].courseName}`,54,y,32,'#205e3d','left',700);y+=54;
  const par=sum(holes.map(x=>x.par)),totals=players.map(scoreTotal).sort((a,b)=>a-b);

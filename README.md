@@ -2,7 +2,7 @@
 
 [게임 실행하기](https://playpark-admin.github.io/playpark-golf-demo/)
 
-10개 코스 중 2개를 골라 전반 9홀 + 후반 9홀을 플레이하세요. Android·iPhone·PC의 브라우저에서 실행됩니다.
+10개 테마 구장, 44개 코스 중 같은 구장의 코스 2개를 골라 전반 9홀 + 후반 9홀을 플레이하세요. Android·iPhone·PC의 브라우저에서 실행됩니다.
 
 이 저장소에는 공개 웹 실행에 필요한 HTML·JavaScript·이미지만 게시됩니다. 개발용 저장소, 테스트, Android/iOS 프로젝트와 개발 이력은 별도의 비공개 저장소에서 관리합니다.
 

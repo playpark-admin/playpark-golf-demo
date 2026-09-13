@@ -2,8 +2,8 @@ import {inBounds,inwardNormal} from './geometry.js';
 import {boundarySetting} from './course-features.js';
 
 // Trace the same playable predicate used by OB judging, including clipped plot edges.
-// One-metre cells are refined at crossings; the result is cached for each hole object.
-const outlines=new WeakMap(),cell=1;
+// Quarter-metre cells retain tight dogleg corners; crossings and results are cached.
+const outlines=new WeakMap(),cell=.25;
 export function boundaryLoops(h){
  if(outlines.has(h))return outlines.get(h);
  const b=h.bounds,x0=b.left-cell,y0=b.top-cell,nx=Math.ceil((b.right-b.left)/cell)+2,ny=Math.ceil((b.bottom-b.top)/cell)+2;
