@@ -96,4 +96,4 @@ export function takeRelief(r){if(r.status!=='playing')throw Error('처치할 수
 export function advanceHole(r){if(r.status!=='hole-complete')throw Error('모두 홀아웃해야 이동할 수 있어요.');if(r.holeIndex===17){r.status='complete';r.completedAt=new Date().toISOString();return;}r.order.sort((a,b)=>r.players[a].scores[r.holeIndex]-r.players[b].scores[r.holeIndex]);r.holeIndex++;setupHole(r);}
 export function total(p){return p.scores.reduce((a,b)=>a+b,0);}
 export function rankPlayers(players){return [...players].sort((a,b)=>total(a)-total(b)).map((p,i,a)=>({...p,rank:a.findIndex(q=>total(q)===total(p))+1}));}
-export function scoreLabel(score,par){const d=score-par;if(score===1)return '홀인원!';return ({'-3':'알바트로스','-2':'이글','-1':'버디',0:'파',1:'보기',2:'더블 보기'})[d]||`${d>0?'+':''}${d}`;}
+export function scoreLabel(score,par){const d=score-par;if(score===1)return '홀인원!';return ({'-3':'알바트로스','-2':'이글','-1':'버디',0:'파',1:'보기',2:'더블 보기',3:'트리플 보기'})[d]||`${d>0?'+':''}${d}`;}

@@ -224,7 +224,17 @@ async function openRecord(record,final=false,stored=true){
 function saveScoreImage(){if(!cardExport)return;const a=document.createElement('a');a.href=cardExport.url;a.download=cardExport.filename;document.body.append(a);a.click();a.remove();toast('스코어카드 이미지 저장을 요청했어요.');}
 async function shareScoreImage(){if(!cardExport)return;try{await navigator.share({files:[cardExport.file],title:APP_INFO.name+' 18홀 스코어카드'});}catch(e){if(e.name!=='AbortError')toast('공유할 수 없어요. 이미지 저장을 이용해 주세요.');}}
 function formatDiff(n){return n===0?'E':n>0?`+${n}`:String(n);}
-function scorecard(){const r=state.round;if(!r)return;modal(`<span class="eyebrow">MY SCORECARD</span><h2 id="modal-title">우리의 18홀 기록</h2><div class="score-tables">${[0,9].map(offset=>`<h3>${offset===0?'전반 OUT':'후반 IN'} · ${r.layout[offset].courseName}</h3><div class="table-scroll"><table><thead><tr><th>홀</th>${r.layout.slice(offset,offset+9).map(h=>`<th>${h.number}</th>`).join('')}<th>합계</th></tr></thead><tbody><tr class="par-row"><th>PAR</th>${r.layout.slice(offset,offset+9).map(h=>`<td>${h.par}</td>`).join('')}<td>33</td></tr>${r.players.map(p=>`<tr><th>${escape(p.name)}</th>${r.layout.slice(offset,offset+9).map((h,j)=>`<td class="${p.scores[offset+j]<h.par?'under':''}">${p.scores[offset+j]??'–'}</td>`).join('')}<td>${p.scores.slice(offset,offset+9).reduce((a,b)=>a+b,0)||'–'}</td></tr>`).join('')}</tbody></table></div>`).join('')}</div><p class="fine-print">모든 타수는 벌타를 포함해요. 홀아웃한 홀만 기록합니다.</p><button class="primary full" data-action="${r.status==='hole-complete'?'hole-result':'close'}">${r.status==='hole-complete'?'홀 결과로 돌아가기':'라운드로 돌아가기'}</button>`,true);}
+function scorecardCell(score,h){
+ if(!Number.isInteger(score)||score<=0)return '<td class="scorecard-hole-cell pending" aria-label="'+h.number+'번 홀 미완료">–</td>';
+ const label=scoreLabel(score,h.par),tone=score<h.par?'under':score>h.par?'over':'even';
+ return `<td class="scorecard-hole-cell ${tone}"><strong class="scorecard-strokes">${score}</strong><span class="scorecard-result">${label}</span></td>`;
+}
+function scorecard(){
+ const r=state.round;if(!r)return;
+ modal(`<span class="eyebrow">MY SCORECARD</span><h2 id="modal-title">우리의 18홀 기록</h2><p class="scorecard-scroll-hint">좌우로 밀어 홀별 타수와 결과를 확인하세요.</p><div class="score-tables">${[0,9].map(offset=>`<h3>${offset===0?'전반 OUT':'후반 IN'} · ${r.layout[offset].courseName}</h3><div class="table-scroll" tabindex="0" role="region" aria-label="${offset===0?'전반':'후반'} 홀별 타수와 결과"><table><thead><tr><th scope="col">홀</th>${r.layout.slice(offset,offset+9).map(h=>`<th scope="col">${h.number}</th>`).join('')}<th scope="col">합계</th></tr></thead><tbody><tr class="par-row"><th scope="row">PAR</th>${r.layout.slice(offset,offset+9).map(h=>`<td>${h.par}</td>`).join('')}<td>33</td></tr>${r.players.map(p=>`<tr><th scope="row">${escape(p.name)}</th>${r.layout.slice(offset,offset+9).map((h,j)=>scorecardCell(p.scores[offset+j],h)).join('')}<td class="scorecard-half-total">${p.scores.slice(offset,offset+9).reduce((a,b)=>a+b,0)||'–'}</td></tr>`).join('')}</tbody></table></div>`).join('')}</div><p class="fine-print">모든 타수는 벌타를 포함해요. 홀아웃한 홀만 기록합니다.</p><button class="primary full" data-action="${r.status==='hole-complete'?'hole-result':'close'}">${r.status==='hole-complete'?'홀 결과로 돌아가기':'라운드로 돌아가기'}</button>`,true);
+ modalRoot.querySelector('.modal').classList.add('scorecard-modal');
+}
+
 function recordsPage(){
  const names=[...new Set(state.records.flatMap(r=>r.players.map(p=>p.name)))];if(!names.includes(state.recordPlayer))state.recordPlayer=names[0];
  const keys=[...new Set(entriesFor(state.records,state.recordPlayer).map(e=>e.record.key))];if(!keys.includes(state.recordKey))state.recordKey=keys[0];

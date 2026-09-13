@@ -17,3 +17,20 @@
 @media(max-width:760px){.cumulative-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.cumulative-stats>div{padding:16px 12px;align-items:flex-start;justify-content:center}.cumulative-stats b{font-size:34px}.cumulative-stats span{font-size:16px}.analysis-panel,.history-panel{padding:20px 14px}.analysis-columns{grid-template-columns:1fr;gap:4px}.analysis-panel h2,.history-panel h2{font-size:25px;line-height:1.5}.history-panel .record-list>div{grid-template-columns:minmax(0,1fr) auto;gap:12px}.history-panel .record-list button{grid-column:1/-1;width:100%;min-height:48px}.par-analysis{gap:7px}.par-analysis>div{padding:14px 8px}.par-analysis span{font-size:15px}.par-analysis b{font-size:28px}.scorecard-actions{position:sticky;bottom:-20px;background:#fff;padding:12px 0;z-index:1}}
 .leaderboard-panel{margin-top:26px}.leaderboard-panel .record-list>div{display:flex;gap:14px;align-items:center;padding:16px 0}.leaderboard-panel .record-name{flex:1}.leaderboard-panel .record-name b{font-size:19px}.leaderboard-panel .record-name small{font-size:16px}.leaderboard-panel .record-list strong{font-size:28px}.leaderboard-panel .secondary{font-size:17px;padding:10px 14px}
 @media(max-width:760px){.leaderboard-panel .record-list>div{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:8px}.leaderboard-panel .record-list button{grid-column:2/-1;width:100%}}
+
+/* Name every finished hole result; keep unfinished cells empty of result labels. */
+.scorecard-scroll-hint{font-size:17px;line-height:1.6;color:#506452}
+.score-tables .table-scroll{border:1px solid #d8e3d0;border-radius:10px}
+.score-tables table{min-width:100%;width:max-content}
+.score-tables th:first-child{min-width:100px;max-width:180px;white-space:normal;overflow-wrap:anywhere}
+.score-tables .scorecard-hole-cell{min-width:100px;padding:12px 10px;white-space:normal;vertical-align:middle}
+.scorecard-strokes{display:block;font-size:23px;line-height:1.4;font-weight:800}
+.scorecard-result{display:block;font-size:17px;line-height:1.45;font-weight:600;margin-top:5px;max-width:90px;word-break:keep-all}
+.score-tables .scorecard-hole-cell.under{color:#21653c;background:#edf5e4}
+.score-tables .scorecard-hole-cell.over{color:#984326;background:#fff0e8}
+.score-tables .scorecard-hole-cell.even{color:#203c31;background:#f1f5ef}
+.score-tables .scorecard-hole-cell.pending{color:#718078;background:#fff}
+.score-tables .scorecard-half-total{font-size:23px;font-weight:800;min-width:64px}
+
+.score-tables th:first-child{position:sticky;left:0;z-index:1;background:#fff;box-shadow:1px 0 #d8e3d0}
+.score-tables thead th:first-child,.score-tables .par-row th:first-child{background:#eaf2e3}
