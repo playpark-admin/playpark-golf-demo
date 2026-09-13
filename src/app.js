@@ -1,3 +1,4 @@
+import {aimVisual,ballVisuals,trailVisual} from './shot-visuals.js';
 import {courseAccess,roundAccess} from './course-access.js';
 import {coursePlayerView,courseLockNote,courseUnlockGuide,lockIcon} from './course-access-view.js';
 import {playerGrowth} from './progression.js';
@@ -102,10 +103,11 @@ function renderGame(){
     if(e.key==='ArrowUp'||e.key==='ArrowDown')state.power=Math.max(0,Math.min(shotLimit(),state.power+(e.key==='ArrowUp'?1:-1)*shotLimit()/40));
     if(e.key==='Escape'){state.power=0;sound('cancel');}if(e.key.startsWith('Arrow'))gameAudio.aim(state.power);if(e.key==='Enter'||e.key===' '){if(!e.repeat)shoot();return;}updateAim();});
 }
+function visualScale(){const matrix=$('#course-map')?.getScreenCTM();return matrix?Math.hypot(matrix.a,matrix.b):1;}
+function renderAimVisual(){const r=state.round;if(!r||!$('#aim-layer'))return;const p=r.players[r.active],h=r.layout[r.holeIndex];$('#aim-layer').innerHTML=r.status==='playing'&&!p.needsRelief&&!state.moving?aimVisual(p.ball,h.cup,state.angle,state.power?expectedDistance(state.power,'fairway'):0,visualScale()):'';}
 function updateAim(){
-  const r=state.round;if(!r||!$('#aim-layer'))return;const p=r.players[r.active],h=r.layout[r.holeIndex],d=state.power?expectedDistance(state.power,'fairway'):0,guide=d||Math.min(6,distance(p.ball,h.cup));
-  const end={x:p.ball.x+Math.cos(state.angle)*guide,y:p.ball.y+Math.sin(state.angle)*guide};
-  $('#aim-layer').innerHTML=r.status==='playing'&&!p.needsRelief?`<path class="aim-line" d="M${p.ball.x} ${p.ball.y}L${end.x} ${end.y}" stroke="${state.power?'#fffbe3':'#ffffff90'}" stroke-width=".38" stroke-dasharray=".8 .8"/><circle cx="${end.x}" cy="${end.y}" r="${state.power?.8:.5}" fill="none" stroke="#fffbe3" stroke-width=".23"/>`:'';
+  const r=state.round;if(!r||!$('#aim-layer'))return;const p=r.players[r.active],h=r.layout[r.holeIndex],d=state.power?expectedDistance(state.power,'fairway'):0;
+  renderAimVisual();
   $('#power-value').innerHTML=`${Math.round(state.power/shotLimit()*100)}<small>%</small>`;
   $('#expected-value').textContent=`${d.toFixed(1)}m`;
   const elevation=terrainAt(h.cup,h).height-terrainAt(p.ball,h).height,local=terrainAt(p.ball,h),grade=Math.hypot(local.dx,local.dy),down=Math.atan2(-local.dy,-local.dx),arrows=['→','↘','↓','↙','←','↖','↑','↗'];
@@ -116,17 +118,17 @@ function updateAim(){
 }
 function updateBalls(animatedId=null,position=null,trail=[]){
   const r=state.round;if(!$('#balls-layer'))return;
-  $('#trail-layer').innerHTML=trail.length>1?`<polyline points="${trail.map(v=>`${v.x},${v.y}`).join(' ')}" fill="none" stroke="#fffdeba0" stroke-width=".36" stroke-linecap="round"/>`:'';
+  $('#trail-layer').innerHTML=trailVisual(trail);
   const latest=[...r.log].reverse().find(shot=>shot.hole===r.holeIndex&&shot.player===r.active);
   $('#relief-layer').innerHTML=animatedId===null&&latest?.event==='ob'?`<g class="ob-resume-marker"><circle cx="${latest.to.x}" cy="${latest.to.y}" r="1.45" fill="none" stroke="#a54722" stroke-width=".28"/><text x="${latest.to.x}" y="${latest.to.y-2}" text-anchor="middle" font-size="2" font-weight="800" fill="#793a1b" stroke="#fffbe6" stroke-width=".65" paint-order="stroke">OB 후 재개</text></g>`:'';
-  $('#balls-layer').innerHTML=r.players.filter(p=>!p.holed||p.id===animatedId).map(p=>{const b=p.id===animatedId?position:p.ball;return `<g><ellipse cx="${b.x+.16}" cy="${b.y+.2}" rx=".55" ry=".35" fill="#244b4040"/><circle cx="${b.x}" cy="${b.y}" r=".48" fill="${color[p.id]}" stroke="#314e35" stroke-width=".1"/>${p.id===r.active&&animatedId===null?`<circle class="active-ball-ring" cx="${b.x}" cy="${b.y}" r="1.05" fill="none" stroke="white" stroke-width=".18"/>`:''}</g>`;}).join('');
+  $('#balls-layer').innerHTML=ballVisuals(r,{animatedId,position,scale:visualScale(),colors:color});
 }
 function cameraPadding(size){const landscape=size.width>size.height*1.4,dock=$('.joystick-dock')?.getBoundingClientRect(),toolbar=$('.field-toolbar')?.getBoundingClientRect();return landscape?{left:14,right:(dock?.width||160)+30,top:(toolbar?.height||48)+16,bottom:16}:{left:14,right:14,top:(toolbar?.height||48)+16,bottom:(dock?.height||190)+28};}
 function applyZoom(){
  const h=state.round.layout[state.round.holeIndex],p=state.round.players[state.round.active];
  const home=size=>{const pad=h.fairwayWidth+(h.roughWidth??3)+4,xs=h.fairway.map(v=>v.x),ys=h.fairway.map(v=>v.y),x=Math.min(...xs)-pad,y=Math.min(...ys)-pad;return fitCamera({x,y,width:Math.max(...xs)-x+pad,height:Math.max(...ys)-y+pad},size,cameraPadding(size));};
  const focus=size=>{const d=distance(p.ball,h.cup),sz=Math.min(32,Math.max(12,d+8)),center=d<20?{x:(p.ball.x+h.cup.x)/2,y:(p.ball.y+h.cup.y)/2}:p.ball;return fitCamera({x:center.x-sz/2,y:center.y-sz/2,width:sz,height:sz},size,cameraPadding(size));};
- mapCamera=bindMapCamera($('#course-map'),{home,focus,mode:state.view,canInteract:()=>!state.moving&&!state.eventOpen&&!modalRoot.firstChild&&!$('#joystick')?.classList.contains('dragging'),onChange:(view,zoom)=>{$('#zoom-value').textContent=zoom>1.02?zoom.toFixed(1)+'×':'전체';}});
+ mapCamera=bindMapCamera($('#course-map'),{home,focus,mode:state.view,canInteract:()=>!state.moving&&!state.eventOpen&&!modalRoot.firstChild&&!$('#joystick')?.classList.contains('dragging'),onChange:(view,zoom)=>{$('#zoom-value').textContent=zoom>1.02?zoom.toFixed(1)+'×':'전체';renderAimVisual();if(!state.moving)updateBalls();}});
 }
 function gameHelp(){const r=state.round,p=r.players[r.active],h=r.layout[r.holeIndex];modal(`<h2 id="modal-title">밀고, 놓으면 샷!</h2><div class="guide-steps"><div><b>1</b><span><strong>조이스틱으로 방향과 힘 조절</strong><small>보낼 방향으로 밀어요. 멀리 밀수록 강해져요. 손을 놓으면 샷, 가운데로 돌아오면 취소예요.</small></span></div><div><b>2</b><span><strong>두 손가락으로 확대하기</strong><small>코스 위에서 두 손가락을 벌리면 확대, 모으면 축소돼요. 한 손가락으로 지도를 이동하고, 위의 배율 버튼을 누르면 전체 코스로 돌아가요.</small></span></div><div><b>3</b><span><strong>경사와 지면 살펴보기</strong><small>경사 그리드의 점은 낮은 쪽으로 흘러요. 빠를수록 가파르고, 밝은 곳이 높아요. 빨간 말뚝과 펜스 아래의 흰 경계를 벗어나 멈추면 OB 2벌타. 벙커는 잔디보다 짧게 굴러요.</small></span></div></div><p>지금 공은 ${lies[lieAt(p.ball,h)]}에 있어요. 홀 근처에서는 약한 힘을 더 세밀하게 조절해요.</p><div class="help-actions"><button class="secondary full" data-action="aim-cup">홀컵 방향으로 조준하기</button>${musicButton()}<button class="secondary full" data-action="game-sound" aria-pressed="${state.sound}">효과음 ${state.sound?'켜짐 · 누르면 끄기':'꺼짐 · 누르면 켜기'}</button>${p.strokes>0&&r.status==='playing'?'<button class="text-button full" data-action="relief">공을 칠 수 없을 때 · 언플레이어블 +2</button>':''}</div><button class="text-button full" data-action="guide">전체 도움말 보기</button><button class="primary full" data-action="close">플레이 계속하기</button>`);}
 async function showShotEvent(result,player,h){
