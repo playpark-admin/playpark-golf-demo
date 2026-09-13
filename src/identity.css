@@ -1,13 +1,15 @@
-/* One masthead; provider and release details belong to the Help page. */
+/* Two-column lobby: brand and navigation share the normal document scroll. */
 /* Reference-inspired title face, bundled so Android/iOS/desktop use the same lettering. */
 @font-face{font-family:'Park Player Title';src:url('../assets/fonts/Belleza-Regular.ttf') format('truetype');font-style:normal;font-weight:400;font-display:swap}
-:root{--app-header-height:calc(80px + var(--safe-top))}
-.app-header{height:var(--app-header-height);min-height:var(--app-header-height);display:flex;align-items:center;justify-content:flex-start;gap:0;padding:var(--safe-top) max(28px,var(--safe-right)) 0 max(28px,var(--safe-left));position:relative;z-index:2}
-.app-brand{display:flex;align-items:center;gap:14px;padding:0;min-height:56px;text-align:left;color:#1e2838}
-.app-brand strong{font-family:'Park Player Title',Georgia,serif;font-size:38px;line-height:1.2;font-weight:400;letter-spacing:-.3px;-webkit-text-stroke:.18px currentColor;white-space:nowrap}
-.app-logo{display:block;width:48px;height:48px;flex-shrink:0;border-radius:12px;object-fit:contain}
-.sidebar{top:var(--app-header-height);padding-top:24px;overflow-y:auto}
-.sidebar nav{flex-shrink:0}.side-caddy{padding-top:32px}
+.app-shell{display:grid;grid-template-columns:calc(260px + var(--safe-left)) minmax(0,1fr);min-height:100vh;min-height:100dvh}
+.app-shell .sidebar{position:static;inset:auto;width:auto;min-width:0;align-self:stretch;padding:calc(28px + var(--safe-top)) 20px calc(24px + var(--safe-bottom)) calc(20px + var(--safe-left));overflow:visible}
+.app-shell .workspace{margin-left:0;min-width:0;padding-top:var(--safe-top);padding-right:var(--safe-right)}
+.app-brand{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;padding:0 0 24px;flex-shrink:0;text-align:left;color:#fff;border-bottom:1px solid #354658}
+.app-brand strong{font-family:'Park Player Title',Georgia,serif;font-size:34px;line-height:1.2;font-weight:400;letter-spacing:-.3px;-webkit-text-stroke:.18px currentColor;white-space:nowrap}
+.app-logo{display:block;width:44px;height:44px;flex-shrink:0;border-radius:11px;object-fit:contain}
+.app-shell .sidebar nav{flex-shrink:0;margin-top:24px}
+.app-shell .side-caddy{margin-top:32px;padding:0 6px}
+@media(max-width:1200px) and (min-width:761px){.app-shell{grid-template-columns:calc(220px + var(--safe-left)) minmax(0,1fr)}.app-shell .sidebar{padding-right:14px;padding-left:calc(14px + var(--safe-left))}.app-brand{gap:8px}.app-brand strong{font-size:30px}.app-logo{width:40px;height:40px}}
 .help-page{max-width:1100px;margin:auto}.help-return{margin-top:22px;gap:10px;display:inline-flex;align-items:center;min-height:52px}
 .help-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;align-items:start}
 .help-card{background:#fff;border:1px solid #dce9ed;border-radius:20px;padding:28px;min-width:0}
@@ -19,7 +21,7 @@
 .help-about{border-top:1px solid #cddde0;margin-top:36px;padding:28px 0 12px}.help-about dl{margin:0;display:grid;gap:16px}.help-about dl>div{display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px;font-size:18px;line-height:1.6}.help-about dt{color:#526777}.help-about dd{margin:0;font-weight:600;overflow-wrap:anywhere}
 @media(max-height:740px) and (min-width:761px){.side-caddy{display:none}}
 @media(max-width:1100px){.help-grid{grid-template-columns:1fr}}
-@media(max-width:760px){:root{--app-header-height:calc(72px + var(--safe-top))}.app-header{padding:var(--safe-top) max(16px,var(--safe-right)) 0 max(16px,var(--safe-left))}.app-brand{gap:12px}.app-brand strong{font-size:34px}.app-logo{width:44px;height:44px;border-radius:11px}.mobile-nav{grid-template-columns:repeat(5,minmax(0,1fr))}.mobile-nav button{font-size:16px;min-height:56px;padding-inline:0}.help-card{padding:24px 20px}.help-card h2,.help-about h2{font-size:25px}.help-about dl>div{grid-template-columns:90px minmax(0,1fr);gap:12px}.help-card .guide-steps>div{gap:12px}.help-card .guide-steps>div>b{width:30px;height:30px;line-height:30px}.help-return{width:100%;justify-content:center}}
+@media(max-width:760px){.app-shell{display:block}.app-shell .workspace{padding:0}.app-shell .sidebar{display:flex;background:transparent;border:0;padding:calc(12px + var(--safe-top)) max(12px,var(--safe-right)) 0 max(12px,var(--safe-left))}.app-shell .sidebar nav,.app-shell .side-caddy{display:none}.app-brand{gap:12px;width:fit-content;padding:0;border:0;color:#1e2838}.app-brand strong{font-size:34px}.app-logo{width:44px;height:44px;border-radius:11px}.mobile-nav{grid-template-columns:repeat(5,minmax(0,1fr))}.mobile-nav button{font-size:16px;min-height:56px;padding-inline:0}.help-card{padding:24px 20px}.help-card h2,.help-about h2{font-size:25px}.help-about dl>div{grid-template-columns:90px minmax(0,1fr);gap:12px}.help-card .guide-steps>div{gap:12px}.help-card .guide-steps>div>b{width:30px;height:30px;line-height:30px}.help-return{width:100%;justify-content:center}}
 
 .music-toggle{min-height:54px;font-size:19px;line-height:1.5}.music-toggle[aria-pressed="false"]{background:#eef2f3;color:#455d69;border-color:#ccd9dd}
 
