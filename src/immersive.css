@@ -19,3 +19,11 @@
 @keyframes terrain-downhill{0%{transform:translate(calc(-1 * var(--flow-x)),calc(-1 * var(--flow-y)));opacity:0}15%,85%{opacity:1}100%{transform:translate(var(--flow-x),var(--flow-y));opacity:0}}
 @media(prefers-reduced-motion:reduce){.terrain-flow-dot{animation:none;transform:translate(calc(.65 * var(--flow-x)),calc(.65 * var(--flow-y)))}}
 .terrain-key{display:flex;align-items:center;justify-content:center;gap:12px;margin:18px 0;font-size:18px;font-weight:700;color:#315438}.terrain-key i{width:110px;height:22px;border-radius:6px;border:1px solid #759453;background:linear-gradient(90deg,#74974e,#d6e4a0)}
+
+/* Mesh is transparent and all boundary decoration sits below the ball and cup layers. */
+.ob-fence{pointer-events:none}.ob-fence-shadow{fill:none;stroke:#173c31;stroke-width:1.2;opacity:.17}
+.ob-fence-panel{fill:#244e45;opacity:.12}.ob-fence-mesh{opacity:.6}
+.ob-fence-rail{fill:none;stroke:#365851;stroke-width:1.35px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.ob-boundary-line{fill:none;stroke:#fff7df;stroke-width:1.6px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.ob-stake-body{fill:none;stroke:#d62f37;stroke-width:3.4px;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.ob-stake-cap{fill:none;stroke:#ffe5da;stroke-width:2px;vector-effect:non-scaling-stroke;stroke-linecap:round}
