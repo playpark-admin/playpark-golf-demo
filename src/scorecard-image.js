@@ -1,3 +1,4 @@
+import {APP_INFO} from './app-info.js';
 import {recordHoles,scoreTotal} from './records.js';
 const sum=a=>a.reduce((n,v)=>n+v,0),diff=n=>n===0?'E':n>0?'+'+n:String(n);
 export async function scorecardImage(record){
@@ -9,7 +10,7 @@ export async function scorecardImage(record){
  box(0,0,w,h,'#f4f8ef');box(0,0,w,206,'#205e3d');
  let logo;try{logo=await new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=new URL('../assets/brand/playpark-symbol.png',import.meta.url).href;});}catch{}
  if(logo)ctx.drawImage(logo,54,44,110,110);
- text('PLAYPARK',190,75,32,'#f5f9ef','left',700);text('우리의 18홀 스코어카드',190,132,46,'#fff','left',800);
+ text(APP_INFO.name,190,75,32,'#f5f9ef','left',700);text('우리의 18홀 스코어카드',190,132,46,'#fff','left',800);
  text(new Date(record.completedAt).toLocaleString('ko-KR'),1148,182,24,'#deedcf','right');
  let y=249;text(`${holes[0].courseName}  →  ${holes[9].courseName}`,54,y,32,'#205e3d','left',700);y+=54;
  const par=sum(holes.map(x=>x.par)),totals=players.map(scoreTotal).sort((a,b)=>a-b);
@@ -21,7 +22,7 @@ export async function scorecardImage(record){
   row('기준 타수 (PAR)',holes.slice(offset,offset+9).map(x=>x.par),sum(holes.slice(offset,offset+9).map(x=>x.par)),'#ecf3e5',true);
   players.forEach((p,i)=>row(p.name,p.scores.slice(offset,offset+9),sum(p.scores.slice(offset,offset+9)),i%2?'#f8faf5':'#fff'));y+=10;
  }
- text('모든 타수는 벌타를 포함합니다. 동점은 공동 순위입니다.',54,y+44,25,'#526654');text('PLAYPARK · 플팍과 함께한 오늘의 기록',54,h-40,24,'#205e3d','left',700);
+ text('모든 타수는 벌타를 포함합니다. 동점은 공동 순위입니다.',54,y+44,25,'#526654');text(APP_INFO.name+' · 플팍과 함께한 오늘의 기록',54,h-40,24,'#205e3d','left',700);
  const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('이미지 저장 실패')),'image/png'));
  return {blob,width:w,height:h,filename:`playpark-scorecard-${record.completedAt.slice(0,10)}-${record.id.slice(0,8)}.png`};
 }

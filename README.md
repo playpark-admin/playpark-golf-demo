@@ -1,4 +1,4 @@
-# 플레이파크 파크골프 · 공개 테스트
+# Park Player · 파크 플레이어
 
 [게임 실행하기](https://playpark-admin.github.io/playpark-golf-demo/)
 

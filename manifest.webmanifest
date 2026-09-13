@@ -1,6 +1,6 @@
 {
-  "name": "플레이파크 · 플팍 파크골프",
-  "short_name": "플팍 골프",
+  "name": "Park Player",
+  "short_name": "Park Player",
   "id": "./",
   "start_url": "./",
   "scope": "./",
