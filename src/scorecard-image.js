@@ -2,16 +2,16 @@ import {APP_INFO} from './app-info.js';
 import {scoreLabel} from './engine.js';
 import {recordHoles,scoreTotal} from './records.js';
 const sum=a=>a.reduce((n,v)=>n+v,0),diff=n=>n===0?'E':n>0?'+'+n:String(n);
-export async function scorecardImage(record){
+export async function scorecardImage(record,{theme='classic'}={}){
  if(document.fonts?.ready)await document.fonts.ready;
  const holes=recordHoles(record);if(holes.length!==18)throw Error('코스 정보를 찾을 수 없어요.');
  const players=record.players,canvas=document.createElement('canvas'),w=1200,h=790+players.length*308;canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d');if(!ctx)throw Error('이미지를 만들 수 없어요.');
  const text=(s,x,y,size=28,color='#203c31',align='left',weight=500,maxWidth=1080)=>{ctx.font=`${weight} ${size}px "Malgun Gothic", "Apple SD Gothic Neo", sans-serif`;ctx.fillStyle=color;ctx.textAlign=align;ctx.textBaseline='middle';ctx.fillText(String(s),x,y,maxWidth);};
  const box=(x,y,width,height,color)=>{ctx.fillStyle=color;ctx.fillRect(x,y,width,height);};
- box(0,0,w,h,'#f4f8ef');box(0,0,w,206,'#205e3d');
+ const gold=theme==='gold';box(0,0,w,h,gold?'#fbf5e7':'#f4f8ef');box(0,0,w,206,gold?'#26354e':'#205e3d');if(gold){box(0,202,w,4,'#c99e48');}
  let logo;try{logo=await new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=new URL('../assets/brand/playpark-symbol.png',import.meta.url).href;});}catch{}
  if(logo)ctx.drawImage(logo,54,44,110,110);
- text(APP_INFO.name,190,75,32,'#f5f9ef','left',700);const venueNames=[...new Set([holes[0].venueName,holes[9].venueName].filter(Boolean))];if(venueNames.length)text(venueNames.join(' · '),1148,75,25,'#f5f9ef','right',600);text('우리의 18홀 스코어카드',190,132,46,'#fff','left',800);
+ text(APP_INFO.name,190,75,32,'#f5f9ef','left',700);const venueNames=[...new Set([holes[0].venueName,holes[9].venueName].filter(Boolean))];if(venueNames.length)text(venueNames.join(' · '),1148,75,25,'#f5f9ef','right',600);text(gold?'PLUS · 18홀 스코어카드':'우리의 18홀 스코어카드',190,132,46,'#fff','left',800);
  text(new Date(record.completedAt).toLocaleString('ko-KR'),1148,182,24,'#deedcf','right');
  let y=249;text(`${holes[0].courseName}  →  ${holes[9].courseName}`,54,y,32,'#205e3d','left',700);y+=54;
  const par=sum(holes.map(x=>x.par)),totals=players.map(scoreTotal).sort((a,b)=>a-b);
@@ -42,7 +42,7 @@ export async function scorecardImage(record){
   row('기준 타수 (PAR)',holes.slice(offset,offset+9).map(x=>x.par),sum(holes.slice(offset,offset+9).map(x=>x.par)),'#ecf3e5',true);
   players.forEach((p,i)=>row(p.name,p.scores.slice(offset,offset+9),sum(p.scores.slice(offset,offset+9)),i%2?'#f8faf5':'#fff'));y+=10;
  }
- text('모든 타수는 벌타를 포함합니다. 동점은 공동 순위입니다.',54,y+44,25,'#526654');text(APP_INFO.name+' · 플팍과 함께한 오늘의 기록',54,h-40,24,'#205e3d','left',700);
+ text('모든 타수는 벌타를 포함합니다. 동점은 공동 순위입니다.',54,y+44,25,'#526654');text(APP_INFO.name+(gold?' PLUS · 오늘의 골드 스코어카드':' · 플팍과 함께한 오늘의 기록'),54,h-40,24,gold?'#876524':'#205e3d','left',700);
  const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('이미지 저장 실패')),'image/png'));
  return {blob,width:w,height:h,filename:`playpark-scorecard-${record.completedAt.slice(0,10)}-${record.id.slice(0,8)}.png`};
 }

@@ -1,8 +1,9 @@
+import {archiveName} from './session.js';
 import {mergeRecords} from './records.js';
 let connection;
 function openArchive(){
  if(connection)return connection;
- connection=new Promise((resolve,reject)=>{const request=indexedDB.open('plpark-history',1);request.onupgradeneeded=()=>request.result.createObjectStore('rounds',{keyPath:'id'});request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);request.onblocked=()=>reject(Error('기록 저장소가 다른 창에서 사용 중이에요.'));});
+ connection=new Promise((resolve,reject)=>{const request=indexedDB.open(archiveName(),1);request.onupgradeneeded=()=>request.result.createObjectStore('rounds',{keyPath:'id'});request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);request.onblocked=()=>reject(Error('기록 저장소가 다른 창에서 사용 중이에요.'));});
  return connection;
 }
 export async function saveRecords(records){

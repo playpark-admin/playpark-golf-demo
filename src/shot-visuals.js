@@ -9,16 +9,18 @@ export function aimVisual(ball,cup,angle,distance,scale){
  const arrow=length*scale>42?`<g transform="translate(${ball.x+(end.x-ball.x)*.65} ${ball.y+(end.y-ball.y)*.65}) rotate(${angle*180/Math.PI}) scale(${1/scale})"><path class="aim-chevron-outline" d="M-5 -5L1 0 -5 5"/><path class="aim-chevron" d="M-5 -5L1 0 -5 5"/></g>`:'';
  return `<path class="aim-outline" d="${path}"/><path class="aim-line" d="${path}"/>${arrow}<g class="aim-target" transform="translate(${end.x} ${end.y}) scale(${1/scale})"><circle class="aim-target-outline" r="6"/><circle class="aim-target-ring" r="6"/></g>`;
 }
-export function ballVisuals(round,{animatedId=null,position=null,scale=1,colors=[]}={}){
+export function ballVisuals(round,{animatedId=null,position=null,scale=1,colors=[],style=null}={}){
  scale=safeScale(scale);const active=animatedId??round.active,cup=round.layout[round.holeIndex].cup;
  // The ball being played is drawn last, including a moving ball after turn advancement.
  return round.players.filter(p=>!p.holed||p.id===animatedId).sort((a,b)=>Number(a.id===active)-Number(b.id===active)).map(p=>{
   const b=p.id===animatedId?position:p.ball,selected=p.id===active,radius=clamp(.65*scale,selected?7:5,selected?9:7);
   const ring=selected&&animatedId===null&&Math.hypot(b.x-cup.x,b.y-cup.y)*scale>26;
-  return `<g class="ball-marker ${selected?'current-ball':''} ${p.id===animatedId?'moving-ball':''}" data-player-id="${p.id}" transform="translate(${b.x} ${b.y}) scale(${1/scale})"><ellipse cx="2" cy="3" rx="${radius+2}" ry="${radius*.8}" fill="#17283d66"/>${ring?`<circle class="active-ball-ring-outline" r="${radius+6}"/><circle class="active-ball-ring" r="${radius+6}"/>`:''}<circle class="ball-rim" r="${radius+1}"/><circle class="ball-body" r="${radius}" fill="${colors[p.id]||'#fff'}"/><circle class="ball-shine" cx="${-radius*.27}" cy="${-radius*.3}" r="${radius*.22}" fill="#fff" opacity=".8"/></g>`;
+  return `<g class="ball-marker ${selected?'current-ball':''} ${p.id===animatedId?'moving-ball':''}" data-player-id="${p.id}" transform="translate(${b.x} ${b.y}) scale(${1/scale})"><ellipse cx="2" cy="3" rx="${radius+2}" ry="${radius*.8}" fill="#17283d66"/>${ring?`<circle class="active-ball-ring-outline" r="${radius+6}"/><circle class="active-ball-ring" r="${radius+6}"/>`:''}<circle class="ball-rim" r="${radius+1}"/><circle class="ball-body" r="${radius}" fill="${p.id===0&&style?style.fill:colors[p.id]||'#fff'}"/>${p.id===0&&style?.mark&&style.mark!=='none'?ballEmblem(style.mark,radius):''}<circle class="ball-shine" cx="${-radius*.27}" cy="${-radius*.3}" r="${radius*.22}" fill="#fff" opacity=".8"/></g>`;
  }).join('');
 }
 export function trailVisual(points){
  if(points.length<2)return '';const path=points.map(p=>`${p.x},${p.y}`).join(' ');
  return `<polyline class="shot-trail-outline" points="${path}"/><polyline class="shot-trail" points="${path}"/>`;
 }
+
+function ballEmblem(mark,r){const paths={star:'M0-3 1-1 3-1 1.5.5 2 3 0 1.6-2 3-1.5.5-3-1-1-1Z',stripe:'M-3-1Q0-3 3-1M-3 1Q0-1 3 1',flower:'M0-1C-3-5-5 0-1 1-4 5 2 5 1 1 5 2 5-3 1-1Z'};return '<path class="ball-emblem" d="'+(paths[mark]||'')+'" transform="scale('+(r/8)+')" fill="'+(mark==='stripe'?'none':'#725b37')+'" stroke="#725b37" stroke-width=".7" pointer-events="none"/>';}
