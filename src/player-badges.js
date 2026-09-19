@@ -41,6 +41,6 @@ export function createPlayerBadges(stage,round,{profileFor,plus=false}={}){
  // Camera orientation and HUD text settle together before placing screen-sized labels.
  const schedule=()=>{if(!frame&&!destroyed)frame=requestAnimationFrame(()=>{frame=0;if(!destroyed)draw();});};
  const observer=new ResizeObserver(schedule);
- for(const e of [stage,...stage.querySelectorAll('.joystick-dock,.stage-note,.terrain-readout,.map-tools')])observer.observe(e);
+ for(const e of [stage,...stage.querySelectorAll('.joystick-dock,.stage-note,.terrain-readout,.map-tools,.cup-flag,.cup-rim')])observer.observe(e);
  return {update(next={}){sample=next;if(next.animatedId!=null){cancelAnimationFrame(frame);frame=0;draw();}else schedule();},destroy(){destroyed=true;cancelAnimationFrame(frame);observer.disconnect();overlay.remove();}};
 }
