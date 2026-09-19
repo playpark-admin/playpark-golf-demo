@@ -1,0 +1,18 @@
+export const PLAYER_COLORS=['#467bb7','#b6751c','#b5527c','#407e59'];
+export const AVATARS=[{id:'green',name:'초록 캡',cap:'#347859',shirt:'#3c8661'},{id:'blue',name:'파랑 캡',cap:'#366bb1',shirt:'#467ab6'},{id:'rose',name:'로즈 캡',cap:'#ac5377',shirt:'#bc6c8a'},{id:'gold',name:'황금 캡',cap:'#a6772a',shirt:'#c29845'}];
+export const escapeProfile=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export function normalizeProfile(profile,index=0){
+ if(profile?.kind==='photo'&&typeof profile.src==='string'&&profile.src.length<=100000&&/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(profile.src))return {kind:'photo',src:profile.src};
+ return {kind:'avatar',id:AVATARS.some(a=>a.id===profile?.id)?profile.id:AVATARS[index%AVATARS.length]?.id||'green'};
+}
+export function avatarImage(profile,index=0){
+ const p=normalizeProfile(profile,index);if(p.kind==='photo')return '<img class="player-portrait" src="'+p.src+'" alt="" draggable="false">';
+ const a=AVATARS.find(a=>a.id===p.id);
+ return '<svg class="player-portrait" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="32" fill="#e4ebdf"/><path d="M5 65v-5c0-18 54-18 54 0v5" fill="'+a.shirt+'"/><path d="m25 47 7 9 7-9" fill="#fff9e4"/><ellipse cx="32" cy="32" rx="17" ry="19" fill="#f1d2ad"/><circle cx="25" cy="33" r="1.6" fill="#29394a"/><circle cx="39" cy="33" r="1.6" fill="#29394a"/><path d="M27 41q5 4 10 0" stroke="#925e48" stroke-width="1.8" stroke-linecap="round" fill="none"/><path d="M14 28C12 5 49 4 50 27Z" fill="'+a.cap+'"/><path d="M13 24q21 6 39-1l5 7q-25 3-44-3Z" fill="'+a.cap+'"/><path d="M20 15q7-6 15-4" fill="none" stroke="#fff" stroke-width="2" opacity=".45"/><path d="m30 17 2-4 2 4 4 .5-3 3 .8 4-3.8-2-3.8 2 .8-4-3-3Z" fill="#e8d69e"/></svg>';
+}
+export function profileSetup(names,count,profiles){return '<section class="profile-setup"><h3>공 옆에 표시할 프로필</h3><p>각 플레이어의 사진이나 아바타를 골라요. 사진은 이 기기에만 저장됩니다.</p>'+names.slice(0,count).map((name,i)=>'<div class="profile-editor" data-profile-index="'+i+'"><div class="profile-editor-heading"><span class="setup-portrait" data-profile-preview="'+i+'">'+avatarImage(profiles[i],i)+'</span><b data-profile-name="'+i+'">'+(i+1)+'. '+escapeProfile(name||'플레이어')+'</b></div><div class="avatar-choices">'+AVATARS.map(a=>'<button class="avatar-choice" data-action="choose-avatar" data-index="'+i+'" data-id="'+a.id+'" aria-label="플레이어 '+(i+1)+' '+a.name+'" aria-pressed="'+(profiles[i]?.kind==='avatar'&&profiles[i]?.id===a.id)+'">'+avatarImage({kind:'avatar',id:a.id},i)+'</button>').join('')+'</div><label class="secondary profile-upload">사진 선택<input type="file" accept="image/jpeg,image/png,image/webp" data-profile-file="'+i+'"></label></div>').join('')+'</section>';}
+export async function prepareProfilePhoto(file){
+ if(!['image/jpeg','image/png','image/webp'].includes(file?.type)||file.size>8*1024*1024)throw Error('8MB 이하의 JPG, PNG, WebP 사진을 선택해 주세요.');
+ const url=URL.createObjectURL(file),img=new Image();
+ try{img.src=url;await img.decode();if(!img.naturalWidth||!img.naturalHeight||img.naturalWidth*img.naturalHeight>40000000)throw Error('사진 크기가 너무 커요. 작은 사진을 선택해 주세요.');const canvas=document.createElement('canvas');canvas.width=canvas.height=160;const ctx=canvas.getContext('2d');if(!ctx)throw Error('사진을 처리할 수 없어요.');const side=Math.min(img.naturalWidth,img.naturalHeight);ctx.fillStyle='#e9eddf';ctx.fillRect(0,0,160,160);ctx.drawImage(img,(img.naturalWidth-side)/2,(img.naturalHeight-side)/2,side,side,0,0,160,160);return {kind:'photo',src:canvas.toDataURL('image/jpeg',.82)};}finally{URL.revokeObjectURL(url);}
+}
