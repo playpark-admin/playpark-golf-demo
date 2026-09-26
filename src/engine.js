@@ -8,7 +8,7 @@ const ellipse=(p,e)=>((p.x-e.x)/e.rx)**2+((p.y-e.y)/e.ry)**2<=1;
 export function lieAt(p,h){if(!inBounds(p,h))return 'ob';if(h.water.some(e=>ellipse(p,e)))return 'water';if(h.sand.some(e=>ellipse(p,e)))return 'sand';if(distance(p,h.cup)<h.greenRadius)return 'green';if(h.fairway.slice(1).some((b,i)=>segmentDistance(p,h.fairway[i],b)<h.fairwayWidth))return 'fairway';return 'rough';}
 export const CUP_RADIUS=.65;
 export const CUP_MAX_ENTRY_SPEED=4.8;
-export const friction={fairway:4.2,green:3.9,rough:4.65,sand:15,water:25,ob:4.65};
+export const friction={fairway:4.2,green:3.9,rough:4.65,sand:8.4,water:25,ob:4.65};
 export function expectedDistance(power,lie){return Math.max(.01,power)/100*85*(4.2/friction[lie]);}
 export function reliefPoint(origin,h){
   // A park-golf club is modelled as 0.86 m. Search the legal rear half-disc.
@@ -27,7 +27,7 @@ export function obReliefPoint(origin,h){
   if(inBounds(origin,h)&&lieAt(origin,h)!=='water'&&clearOfObstacles(origin,h,.035))return {...origin};
   throw Error('이 경계에 공을 놓을 수 없어요. 코스의 장애물 배치를 확인해 주세요.');
 }
-export function simulateShot(h,start,angle,power){
+export function simulateShot(h,start,angle,power,physics=PHYSICS){
   if(!Number.isFinite(angle)||!Number.isFinite(power)||power<=0||power>100)throw Error('올바른 샷 값을 입력해 주세요.');
   let p={...start},v=Math.sqrt(2*4.2*85*power/100),vx=Math.cos(angle)*v,vy=Math.sin(angle)*v,lastCross={...start},redCross=null,wasInside=inBounds(start,h),event=null;
   const frames=[{...p,t:0}],impacts=[],crossings=[];const dt=1/120;let elapsed=0;
@@ -36,7 +36,7 @@ export function simulateShot(h,start,angle,power){
   for(let i=0;i<7200;i++){
     const prev={...p};const speed=Math.hypot(vx,vy);if(speed<.06)break;
     elapsed=(i+1)*dt;const slope=slopeAcceleration(p,h);vx+=slope.x*dt;vy+=slope.y*dt;
-    const rollingSpeed=Math.hypot(vx,vy),f=friction[lieAt(p,h)]*dt,ratio=rollingSpeed?Math.max(0,(rollingSpeed-f)/rollingSpeed):0;vx*=ratio;vy*=ratio;p.x+=vx*dt;p.y+=vy*dt;
+    const rollingSpeed=Math.hypot(vx,vy),lie=lieAt(p,h),f=(lie==='sand'&&physics!=='roll-5-bunker' ? 15 : friction[lie])*dt,ratio=rollingSpeed?Math.max(0,(rollingSpeed-f)/rollingSpeed):0;vx*=ratio;vy*=ratio;p.x+=vx*dt;p.y+=vy*dt;
     const rock=firstRockHit(prev,p,h.rocks);
     if(rock){const {point,normal:n}=rock,dot=vx*n.x+vy*n.y;impact('rock',point);vx=(vx-2*dot*n.x)*.58;vy=(vy-2*dot*n.y)*.58;p={x:point.x+n.x*.006,y:point.y+n.y*.006};}
     for(const t of h.trees){const d=distance(p,t);if(d<t.r+.035){const nx=(p.x-t.x)/(d||1),ny=(p.y-t.y)/(d||1),dot=vx*nx+vy*ny;p={x:t.x+nx*(t.r+.04),y:t.y+ny*(t.r+.04)};if(dot<0){vx=(vx-2*dot*nx)*.5;vy=(vy-2*dot*ny)*.5;}event='tree';}}
@@ -77,7 +77,7 @@ function setupHole(r){for(const p of r.players)Object.assign(p,{ball:{...r.layou
 export function nextPlayer(r){const pending=r.players.filter(p=>!p.holed);if(!pending.length)return null;const tee=r.order.find(id=>r.players[id].strokes===0);if(tee!==undefined)return tee;return [...pending].sort((a,b)=>distance(b.ball,r.layout[r.holeIndex].cup)-distance(a.ball,r.layout[r.holeIndex].cup)||r.order.indexOf(a.id)-r.order.indexOf(b.id))[0].id;}
 export function takeShot(r,angle,power){
   if(r.status!=='playing')throw Error('지금은 샷을 할 수 없어요.');const p=r.players[r.active];if(p.needsRelief)throw Error('먼저 워터 해저드 처치를 확인해 주세요.');
-  const result=simulateShot(r.layout[r.holeIndex],p.ball,angle,power);const from={...p.ball};p.strokes++;p.holePenalty+=result.penalty;p.ball={...result.position};p.holed=result.holed;p.needsRelief=!!result.needsRelief;
+  const result=simulateShot(r.layout[r.holeIndex],p.ball,angle,power,r.physics);const from={...p.ball};p.strokes++;p.holePenalty+=result.penalty;p.ball={...result.position};p.holed=result.holed;p.needsRelief=!!result.needsRelief;
   r.log.push({hole:r.holeIndex,player:p.id,angle,power,from,to:{...p.ball},penalty:result.penalty,event:result.event,...(result.impacts.length?{impacts:result.impacts}:{}),...(result.crossings.length?{crossings:result.crossings}:{}),...(result.obReason?{obReason:result.obReason}:{}),...(result.event==='ob'?{reliefOrigin:{...result.reliefOrigin}}:{})});
   settleTurn(r,p);return result;
 }

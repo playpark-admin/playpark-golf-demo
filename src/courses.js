@@ -5,7 +5,7 @@ import {regionalCourses} from './regional-courses.js';
 import {venues,venueForCourse} from './venues.js';
 // Course packs are independently versioned. Geometry uses metres; visuals use the same data.
 export const RULESET = 'kpga-2024.02.05-game-3';
-export const PHYSICS = 'roll-4-collisions';
+export const PHYSICS = 'roll-5-bunker';
 const pars = [3,4,3,4,5,3,4,3,4];
 const distances = [40,65,45,60,100,35,70,50,65];
 const specs = [
