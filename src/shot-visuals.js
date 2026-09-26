@@ -1,7 +1,12 @@
+import {CUP_RADIUS} from './engine.js';
 // All glyph sizes below are screen pixels. Their anchors stay in course metres.
 // These are visibility aids only; shot distances, collisions and cup capture are unchanged.
-const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const safeScale=n=>Number.isFinite(n)&&n>0?n:1;
+// The ball and cup share one display scale, preserving their diameter ratio at every zoom.
+// Minimum pixels keep both visible on the full-course map without changing physics.
+const DISPLAY_BALL_RADIUS=.42;
+export function ballScreenRadius(scale){return Math.max(7,DISPLAY_BALL_RADIUS*safeScale(scale));}
+export function cupScreenRadius(scale){return ballScreenRadius(scale)*CUP_RADIUS/DISPLAY_BALL_RADIUS;}
 export function aimVisual(ball,cup,angle,distance,scale){
  scale=safeScale(scale);const toCup=Math.hypot(cup.x-ball.x,cup.y-ball.y);
  const length=distance>0?distance:Math.min(toCup,Math.max(6,44/scale));
@@ -13,7 +18,7 @@ export function ballVisuals(round,{animatedId=null,position=null,scale=1,colors=
  scale=safeScale(scale);const active=animatedId??round.active,cup=round.layout[round.holeIndex].cup;
  // The ball being played is drawn last, including a moving ball after turn advancement.
  return round.players.filter(p=>!p.holed||p.id===animatedId).sort((a,b)=>Number(a.id===active)-Number(b.id===active)).map(p=>{
-  const b=p.id===animatedId?position:p.ball,selected=p.id===active,radius=clamp(.65*scale,selected?7:5,selected?9:7);
+  const b=p.id===animatedId?position:p.ball,selected=p.id===active,radius=ballScreenRadius(scale);
   const ring=selected&&animatedId===null&&Math.hypot(b.x-cup.x,b.y-cup.y)*scale>26;
   return `<g class="ball-marker ${selected?'current-ball':''} ${p.id===animatedId?'moving-ball':''}" data-player-id="${p.id}" transform="translate(${b.x} ${b.y}) scale(${1/scale})"><ellipse cx="2" cy="3" rx="${radius+2}" ry="${radius*.8}" fill="#17283d66"/>${p.id===0&&style?.mark&&style.mark!=='none'?`<g class="plus-ball-aura"><circle r="${radius+4}" fill="none" stroke="#fff0b2" stroke-width="2"/><path d="M${radius+8} -4v6m-3-3h6" stroke="#fff5c9" stroke-width="1.6"/></g>`:''}${ring?`<circle class="active-ball-ring-outline" r="${radius+6}"/><circle class="active-ball-ring" r="${radius+6}"/>`:''}<circle class="ball-rim" r="${radius+1}"/><circle class="ball-body" r="${radius}" fill="${p.id===0&&style?style.fill:colors[p.id]||'#fff'}"/>${p.id===0&&style?.mark&&style.mark!=='none'?ballEmblem(style.mark,radius):''}<circle class="ball-shine" cx="${-radius*.27}" cy="${-radius*.3}" r="${radius*.22}" fill="#fff" opacity=".8"/></g>`;
  }).join('');

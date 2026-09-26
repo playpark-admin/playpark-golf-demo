@@ -1,5 +1,6 @@
 /* Strong edges survive bright greens, sand, terrain grids and every camera zoom. */
 #aim-layer,#balls-layer,#trail-layer{pointer-events:none}
+#course-map .cup-rim{vector-effect:non-scaling-stroke;stroke-width:2px}
 #course-map .aim-outline,#course-map .aim-line,#course-map .shot-trail-outline,#course-map .shot-trail{fill:none;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 #course-map .aim-outline{stroke:#17283d;stroke-width:7px;opacity:.95}
 #course-map .aim-line{stroke:#ffdf48;stroke-width:3px;stroke-dasharray:none;animation:none;opacity:1}
