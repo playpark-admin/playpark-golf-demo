@@ -1,5 +1,12 @@
 export const PLAYER_COLORS=['#467bb7','#b6751c','#b5527c','#407e59'];
-export const AVATARS=[{id:'green',name:'플팍이',left:'-84%',top:'-35%'},{id:'blue',name:'파준',left:'-194%',top:'-41%'},{id:'rose',name:'파순',left:'-140%',top:'-132%'},{id:'gold',name:'파파',left:'-306%',top:'-35%'},{id:'plum',name:'파미',left:'-263%',top:'-133%'},{id:'rashi',name:'래쉬',left:'-150%',top:'-130%',size:'400%',src:'rashi.png'}];
+export const AVATARS=[
+ {id:'green',name:'플팍이',left:'-30%',top:'-473%',size:'1099%'},
+ {id:'blue',name:'파준',left:'-1418%',top:'-986%',size:'1963%'},
+ {id:'rose',name:'파순',left:'-1341%',top:'-765%',size:'1616%'},
+ {id:'gold',name:'파파',left:'-1205%',top:'-569%',size:'1309%'},
+ {id:'plum',name:'파미',left:'-1421%',top:'-782%',size:'1616%'},
+ {id:'rashi',name:'래쉬',left:'4%',top:'2%',size:'92%',src:'rashi-3d.png'}
+];
 export const escapeProfile=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function normalizeProfile(profile,index=0){
  if(profile?.kind==='photo'&&typeof profile.src==='string'&&profile.src.length<=100000&&/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(profile.src))return {kind:'photo',src:profile.src};
@@ -8,7 +15,7 @@ export function normalizeProfile(profile,index=0){
 export function avatarImage(profile,index=0){
  const p=normalizeProfile(profile,index);if(p.kind==='photo')return '<img class="player-portrait" src="'+p.src+'" alt="" draggable="false">';
  const a=AVATARS.find(a=>a.id===p.id);
- return '<span class="player-portrait avatar-crop" style="--face-left:'+a.left+';--face-top:'+a.top+';--sprite-size:'+(a.size||'500%')+'"><img class="avatar-sprite" src="./assets/brand/'+(a.src||'plpak-friends.png')+'" alt="" draggable="false"></span>';
+ return '<span class="player-portrait avatar-crop" style="--face-left:'+a.left+';--face-top:'+a.top+';--sprite-size:'+(a.size||'500%')+'"><img class="avatar-sprite" src="./assets/brand/'+(a.src||'plpak-friends-3d.jpg')+'" alt="" draggable="false"></span>';
 }
 export function profileSetup(names,count,profiles){return '<section class="profile-setup"><h3>공 옆에 표시할 프로필</h3><p>각 플레이어의 사진이나 아바타를 골라요. 사진은 이 기기에만 저장됩니다.</p>'+names.slice(0,count).map((name,i)=>'<div class="profile-editor" data-profile-index="'+i+'"><div class="profile-editor-heading"><span class="setup-portrait" data-profile-preview="'+i+'">'+avatarImage(profiles[i],i)+'</span><b data-profile-name="'+i+'">'+(i+1)+'. '+escapeProfile(name||'플레이어')+'</b></div><div class="avatar-choices">'+AVATARS.map(a=>'<button class="avatar-choice" data-action="choose-avatar" data-index="'+i+'" data-id="'+a.id+'" aria-label="플레이어 '+(i+1)+' '+a.name+'" aria-pressed="'+(profiles[i]?.kind==='avatar'&&profiles[i]?.id===a.id)+'">'+avatarImage({kind:'avatar',id:a.id},i)+'</button>').join('')+'</div><label class="secondary profile-upload">사진 선택<input type="file" accept="image/jpeg,image/png,image/webp" data-profile-file="'+i+'"></label></div>').join('')+'</section>';}
 export async function prepareProfilePhoto(file){

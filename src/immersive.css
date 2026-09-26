@@ -30,3 +30,6 @@
 
 /* Stake color describes the crossing rule; mesh exists only on solid net sections. */
 .ob-stake-outline{fill:none;stroke:#314a49;stroke-width:5px;vector-effect:non-scaling-stroke;stroke-linecap:round}.stake-white .ob-stake-body{stroke:#fffdf0}.stake-white .ob-stake-cap{stroke:#dce8e7}.boundary-red{stroke:#e0494b;stroke-width:2px}.boundary-white{stroke:#fffdf0}.impact-ring{fill:none;stroke:#fff9ad;stroke-width:3px;vector-effect:non-scaling-stroke;pointer-events:none}
+
+/* High-contrast mouse locator for desktop aiming and joystick dragging. */
+@media (hover:hover) and (pointer:fine){.game-shell.immersive-game .field-area,.game-shell.immersive-game #course-map,.game-shell.immersive-game .joystick,.game-shell.immersive-game .joystick.dragging{cursor:url('../assets/ui/aim-cursor.svg') 16 16,crosshair}}

@@ -6,5 +6,5 @@
 
 @media(max-width:360px){.game-shell.immersive-game.tee-waiting .joystick-dock{right:4px}}
 
-.avatar-crop{position:relative;overflow:hidden;background:#fff8df;flex-shrink:0}
+.avatar-crop{position:relative;overflow:hidden;background:#deece4;flex-shrink:0}
 .avatar-sprite{position:absolute;left:var(--face-left);top:var(--face-top);width:var(--sprite-size,500%);height:auto;max-width:none;border-radius:0;pointer-events:none}
