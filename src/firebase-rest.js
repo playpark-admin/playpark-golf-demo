@@ -4,7 +4,7 @@ const fieldsFor=event=>Object.fromEntries(Object.entries(event).map(([key,value]
 const readValue=value=>value?.stringValue??(value?.integerValue!==undefined?Number(value.integerValue):value?.booleanValue??value?.timestampValue??null);
 export function firestoreEvent(document){return Object.fromEntries(Object.entries(document.fields||{}).map(([key,value])=>[key,readValue(value)]));}
 export class FirebaseClient{
- constructor(config,{fetcher=globalThis.fetch}={}){this.config=config;this.fetcher=fetcher;this.session=null;}
+ constructor(config,{fetcher=globalThis.fetch.bind(globalThis)}={}){this.config=config;this.fetcher=fetcher;this.session=null;}
  get configured(){return Boolean(this.config.apiKey&&this.config.projectId);}
  get documents(){return `https://firestore.googleapis.com/v1/projects/${encode(this.config.projectId)}/databases/(default)/documents`;}
  async json(url,options={}){const response=await this.fetcher(url,options);const result=await response.json().catch(()=>({}));if(!response.ok)throw Error(result.error?.message||`Firebase ${response.status}`);return result;}
